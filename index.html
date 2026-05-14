@@ -3,473 +3,697 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Consumibles Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js">
-document.addEventListener("DOMContentLoaded",()=>{
-  const pf=document.getElementById("product-filter");
-  if(pf && typeof PRODS!=="undefined"){
-    PRODS.forEach(p=>{
-      const op=document.createElement("option");
-      op.value=p;
-      op.textContent=p;
-      pf.appendChild(op);
-    });
-  }
-});
-
-</script>
+<title>Consumibles & Suministros</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg0:#080C18;--bg1:#0F1525;--bg2:#151E32;--bg3:#1C2540;
-  --bdr:#232D48;--bdr2:#2E3A58;
-  --t1:#E4EDFF;--t2:#7B8DB8;--t3:#3E4D72;
-  --blue:#4A8FFF;--teal:#29CCB4;--amber:#F5A623;--purple:#9B7AFA;
-  --coral:#F76C8A;--green:#33D48A;--rose:#FF6B9D;
+  --bg0:#070912;--bg1:#0D1120;--bg2:#121829;--bg3:#182030;--bg4:#1E2840;
+  --bdr:#1E2A42;--bdr2:#283860;
+  --t1:#DCE8FF;--t2:#6B82B0;--t3:#2E3D60;
+  --blue:#3D8BFF;--teal:#1DC9B0;--amber:#F09820;--purple:#8B6BF0;--coral:#F05878;--green:#28C87A;
   --font:'Segoe UI',system-ui,sans-serif;
 }
-body{background:var(--bg0);color:var(--t1);font-family:var(--font);font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg0);color:var(--t1);font-family:var(--font);font-size:13px;display:flex;flex-direction:column}
 
 /* TOPBAR */
-#topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 22px;background:var(--bg1);border-bottom:1px solid var(--bdr);flex-shrink:0}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:9px 20px;background:var(--bg1);border-bottom:1px solid var(--bdr);flex-shrink:0;gap:12px}
 .brand{display:flex;align-items:center;gap:10px}
-.pulse{width:9px;height:9px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
-.brand-title{font-size:15px;font-weight:700;letter-spacing:.03em}
-.brand-sub{font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
-.topbar-right{display:flex;align-items:center;gap:16px}
-.badge-stat{font-size:11px;color:var(--t2);padding:3px 10px;background:var(--bg2);border:1px solid var(--bdr);border-radius:20px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px var(--teal);animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}60%{opacity:.3}}
+.brand-name{font-size:14px;font-weight:700;letter-spacing:.02em}
+.brand-period{font-size:10px;color:var(--t3);letter-spacing:.05em;margin-top:1px}
+.topbar-kpis{display:flex;gap:8px;margin-left:auto}
+.tk{display:flex;flex-direction:column;align-items:center;padding:4px 14px;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;min-width:90px}
+.tk-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+.tk-val{font-size:16px;font-weight:800;color:var(--t1);line-height:1.2;letter-spacing:-.02em}
+.tk-sub{font-size:9px;color:var(--t2)}
 
-/* FILTERBAR */
-#filterbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 22px;background:var(--bg1);border-bottom:1px solid var(--bdr);flex-shrink:0}
-.fg{display:flex;align-items:center;gap:5px}
-.fl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
-.pills{display:flex;gap:3px;flex-wrap:wrap}
-.pill{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid var(--bdr2);background:transparent;color:var(--t2);cursor:pointer;transition:all .12s;white-space:nowrap}
-.pill:hover{border-color:var(--blue);color:var(--t1)}
-.pill.on{background:var(--blue);border-color:var(--blue);color:#fff}
+/* NAV */
+#nav{display:flex;gap:2px;padding:0 20px;background:var(--bg1);border-bottom:1px solid var(--bdr);flex-shrink:0}
+.nav-tab{padding:9px 18px;font-size:10px;font-weight:700;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.06em;text-transform:uppercase}
+.nav-tab:hover{color:var(--t2)}
+.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* FILTER ROWS */
+.frow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 20px;background:var(--bg2);border-bottom:1px solid var(--bdr);flex-shrink:0}
+.fl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;flex-shrink:0}
 .vsep{width:1px;height:18px;background:var(--bdr);flex-shrink:0}
-#search-box{background:var(--bg2);border:1px solid var(--bdr);color:var(--t1);border-radius:6px;padding:4px 10px;font-size:12px;width:170px;outline:none;margin-left:auto}
-#search-box:focus{border-color:var(--blue)}
-#reset-btn{padding:3px 10px;border-radius:6px;font-size:11px;border:1px solid var(--bdr2);background:transparent;color:var(--t3);cursor:pointer}
-#reset-btn:hover{border-color:var(--coral);color:var(--coral)}
+
+/* TODOS-style group */
+.fg-wrap{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.fg-todos{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--teal);background:rgba(29,201,176,.15);color:var(--teal);cursor:pointer;transition:all .12s;white-space:nowrap}
+.fg-todos.off{background:transparent;border-color:var(--bdr2);color:var(--t3)}
+.fg-todos.off:hover{border-color:var(--teal);color:var(--teal)}
+.fg-item{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:transparent;color:var(--t3);cursor:pointer;transition:all .12s;white-space:nowrap}
+.fg-item:hover{border-color:var(--blue);color:var(--t1)}
+.fg-item.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.fg-item.on.pu{background:var(--purple);border-color:var(--purple)}
+
+/* Month pills */
+.mpill{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;border:1px solid var(--bdr2);background:transparent;color:var(--t3);cursor:pointer;transition:all .12s}
+.mpill:hover{border-color:var(--amber);color:var(--t1)}
+.mpill.on{background:rgba(240,152,32,.18);border-color:var(--amber);color:var(--amber)}
+.mtodos{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;border:1px solid var(--teal);background:rgba(29,201,176,.15);color:var(--teal);cursor:pointer;transition:all .12s}
+.mtodos.off{background:transparent;border-color:var(--bdr2);color:var(--t3)}
+.mtodos.off:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ARTÍCULO BUTTON + DROPDOWN */
+.prod-btn-wrap{position:relative;margin-left:auto}
+#prod-btn{display:flex;align-items:center;gap:7px;padding:5px 14px;border-radius:8px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--t1);cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;white-space:nowrap}
+#prod-btn:hover{border-color:var(--blue)}
+#prod-btn.active{border-color:var(--blue);background:rgba(61,139,255,.1);color:var(--blue)}
+.prod-btn-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);transition:all .2s}
+.prod-btn-dot.sel{background:var(--blue);box-shadow:0 0 5px var(--blue)}
+#prod-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;width:290px;background:var(--bg1);border:1px solid var(--bdr2);border-radius:10px;box-shadow:0 10px 36px rgba(0,0,0,.55);z-index:200;flex-direction:column;max-height:420px}
+#prod-dropdown.open{display:flex}
+.pd-top{padding:10px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.pd-search{width:100%;background:var(--bg3);border:1px solid var(--bdr);color:var(--t1);border-radius:6px;padding:6px 10px;font-size:12px;outline:none}
+.pd-search:focus{border-color:var(--blue)}
+.pd-list{overflow-y:auto;padding:4px 6px;flex:1}
+.pd-cat-hdr{padding:8px 8px 3px;font-size:9px;text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+.pd-item{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--t2);display:flex;align-items:center;gap:7px;transition:all .1s}
+.pd-item:hover{background:var(--bg4);color:var(--t1)}
+.pd-item.sel{background:rgba(61,139,255,.12);color:var(--blue);font-weight:700}
+.pd-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pd-clear-btn{padding:7px;font-size:11px;background:transparent;border:none;border-top:1px solid var(--bdr);color:var(--t2);cursor:pointer;text-align:center;flex-shrink:0;transition:all .12s}
+.pd-clear-btn:hover{color:var(--coral);background:rgba(240,88,120,.06)}
 
 /* MAIN */
-#main{flex:1;overflow-y:auto;padding:14px 22px 22px;display:flex;flex-direction:column;gap:12px}
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.view{display:none;flex:1;overflow-y:auto;padding:13px 20px;flex-direction:column;gap:12px}
+.view.active{display:flex}
 
-/* KPI */
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.kpi{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:13px 15px;position:relative;overflow:hidden;transition:border-color .2s}
-.kpi:hover{border-color:var(--bdr2)}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--blue))}
-.kpi-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px}
-.kpi-val{font-size:24px;font-weight:800;color:var(--t1);line-height:1;letter-spacing:-.02em}
-.kpi-sub{font-size:10px;color:var(--t2);margin-top:4px}
-
-/* GRID ROWS */
-.grid2{display:grid;grid-template-columns:1.8fr 1fr;gap:12px}
-.grid3{display:grid;grid-template-columns:1fr 1.6fr;gap:12px}
-
-/* CHART CARD */
-.cc{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:14px}
-.ct{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.ct-info{font-size:11px;color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto}
-.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+/* CARDS */
+.cc{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:13px}
+.ct{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ct-r{margin-left:auto;font-size:10px;color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0}
+.legend{display:flex;flex-wrap:wrap;gap:8px}
 .li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2)}
 .ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 
+/* PRODUCT DETAIL BANNER */
+.pd-banner{background:var(--bg3);border:1px solid var(--bdr2);border-radius:10px;padding:13px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.pdb-info{flex:1;min-width:160px}
+.pdb-name{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.pdb-cat{font-size:11px;margin-top:3px}
+.pdb-kpis{display:flex;gap:10px;flex-wrap:wrap}
+.pdb-kpi{background:var(--bg1);border:1px solid var(--bdr);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px}
+.pdb-kpi-l{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+.pdb-kpi-v{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.pdb-kpi-s{font-size:9px;color:var(--t2)}
+.pdb-close{padding:5px 11px;border-radius:7px;border:1px solid var(--bdr2);background:transparent;color:var(--t3);cursor:pointer;font-size:11px;transition:all .12s;flex-shrink:0}
+.pdb-close:hover{border-color:var(--coral);color:var(--coral)}
+
+/* GRIDS */
+.grid2{display:grid;grid-template-columns:1.9fr 1fr;gap:12px}
+
 /* STORE BARS */
-.sbar-row{margin-bottom:9px}
-.sbar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.sbar-row{margin-bottom:8px}
+.sbar-lbl{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
 .sbar-name{color:var(--t2)}
 .sbar-val{color:var(--t1);font-weight:700}
+.sbar-prom{font-size:9px;color:var(--t3);margin-top:1px}
 .sbar-track{height:5px;background:var(--bg3);border-radius:3px}
-.sbar-fill{height:5px;border-radius:3px;transition:width .4s}
+.sbar-fill{height:5px;border-radius:3px;transition:width .35s}
 
-/* TABLE */
-.tc{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
-.th{padding:9px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
-.tt{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em}
-.tw{overflow-x:auto;max-height:200px;overflow-y:auto}
+/* ALL PRODUCTS LIST */
+.ap-head{display:flex;align-items:center;gap:8px;padding:3px 7px;margin-bottom:2px;border-bottom:1px solid var(--bdr)}
+.aph{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.ap-row{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:7px;cursor:pointer;transition:background .1s;border-bottom:1px solid rgba(30,42,66,.4)}
+.ap-row:last-child{border-bottom:none}
+.ap-row:hover{background:var(--bg4)}
+.ap-row.sel{background:rgba(61,139,255,.09);border-bottom-color:rgba(61,139,255,.12)}
+.ap-name{font-size:12px;color:var(--t1);flex:1.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ap-cat{font-size:9px;color:var(--t3);flex:0.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ap-bar-wrap{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;min-width:40px}
+.ap-bar{height:5px;border-radius:3px;transition:width .3s}
+.ap-val{font-size:11px;font-weight:700;color:var(--t1);text-align:right;min-width:54px;font-variant-numeric:tabular-nums}
+.ap-prom{font-size:10px;color:var(--t2);text-align:right;min-width:70px;font-variant-numeric:tabular-nums}
+.sort-btn{padding:2px 9px;border-radius:10px;font-size:10px;border:1px solid var(--bdr2);background:transparent;color:var(--t2);cursor:pointer;font-weight:600;transition:all .12s}
+.sort-btn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.sort-btn-amber.on{background:var(--amber);border-color:var(--amber);color:#1A1000}
+
+/* PROMEDIOS TABLE */
+.tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{position:sticky;top:0;background:var(--bg3);color:var(--t3);font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:7px 10px;text-align:left;border-bottom:1px solid var(--bdr);cursor:pointer;white-space:nowrap;user-select:none}
+thead th{position:sticky;top:0;background:var(--bg3);color:var(--t3);font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:7px 10px;text-align:left;border-bottom:1px solid var(--bdr);cursor:pointer;white-space:nowrap;user-select:none;z-index:1}
 thead th:hover{color:var(--t1)}
 thead th.s{color:var(--blue)}
-td{padding:6px 10px;border-bottom:1px solid rgba(35,45,72,.6);white-space:nowrap}
-tr:hover td{background:rgba(74,143,255,.05)}
-.b{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
-.b-bl{background:rgba(74,143,255,.14);color:#7EB3FF}
-.b-pu{background:rgba(155,122,250,.14);color:#C4B5FD}
-.b-te{background:rgba(41,204,180,.12);color:#5EE7D4}
-.b-am{background:rgba(245,166,35,.12);color:#FCD34D}
-.b-co{background:rgba(247,108,138,.12);color:#FDA4AF}
-.b-gr{background:rgba(51,212,138,.12);color:#6EE7B7}
-.b-gy{background:rgba(123,141,184,.12);color:#A3B4D4}
+td{padding:6px 10px;border-bottom:1px solid rgba(30,42,66,.7);white-space:nowrap;vertical-align:middle}
+tr:hover td{background:rgba(61,139,255,.04)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.badge-cat{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
 
+/* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
-
-.card-hover:hover{transform:translateY(-2px);transition:.2s}
-.cc,.tc,.kpi{box-shadow:0 8px 20px rgba(0,0,0,.18)}
-
+::-webkit-scrollbar-thumb:hover{background:var(--blue)}
 </style>
 </head>
 <body>
 
+<!-- TOPBAR -->
 <div id="topbar">
   <div class="brand">
-    <div class="pulse"></div>
+    <div class="live-dot"></div>
     <div>
-      <div class="brand-title">Consumibles &amp; Suministros</div>
-      <div class="brand-sub">Dashboard de Movimientos · Ene 2025 – May 2026</div>
+      <div class="brand-name">Consumibles &amp; Suministros</div>
+      <div class="brand-period" id="period-label">Ene 2025 – May 2026</div>
     </div>
   </div>
-  <div class="topbar-right">
-    <span class="badge-stat" id="badge-recs">— registros</span>
-    <span class="badge-stat" id="badge-total">— unidades</span>
+  <div class="topbar-kpis" id="topbar-kpis"></div>
+</div>
+
+<!-- NAV TABS -->
+<div id="nav">
+  <div class="nav-tab active" onclick="switchView('overview',this)">General</div>
+  <div class="nav-tab" onclick="switchView('promedios',this)">Promedios Mensuales</div>
+</div>
+
+<!-- FILTER ROW 1 -->
+<div class="frow">
+  <span class="fl">Canal</span>
+  <div class="fg-wrap" id="fp-canal"></div>
+  <div class="vsep"></div>
+  <span class="fl">Tienda</span>
+  <div class="fg-wrap" id="fp-store"></div>
+  <div class="vsep"></div>
+  <span class="fl">Categoría</span>
+  <div class="fg-wrap" id="fp-cat"></div>
+
+  <!-- Artículo picker -->
+  <div class="prod-btn-wrap" id="prod-btn-wrap">
+    <button id="prod-btn" onclick="toggleDrop(event)">
+      <span class="prod-btn-dot" id="prod-dot"></span>
+      <span id="prod-btn-label">Artículos</span>
+      <span style="font-size:10px;color:var(--t3)" id="drop-arrow">▾</span>
+    </button>
+    <div id="prod-dropdown">
+      <div class="pd-top">
+        <input class="pd-search" id="pd-q" type="text" placeholder="Buscar artículo..." oninput="renderDropList()">
+      </div>
+      <div class="pd-list" id="pd-list"></div>
+      <button class="pd-clear-btn" onclick="clearProd()">✕  Quitar selección de artículo</button>
+    </div>
   </div>
 </div>
 
-<div id="filterbar">
-  <div class="fg"><span class="fl">Canal</span><div class="pills" id="fp-canal"></div></div>
-  <div class="vsep"></div>
-  <div class="fg"><span class="fl">Tienda</span><div class="pills" id="fp-store"></div></div>
-  <div class="vsep"></div>
-  <div class="fg"><span class="fl">Categoría</span><div class="pills" id="fp-cat"></div></div>
-  
-  <div class="vsep"></div>
-  <div class="fg">
-    <span class="fl">Productos</span>
-    <select id="product-filter" style="background:var(--bg2);border:1px solid var(--bdr);color:var(--t1);border-radius:6px;padding:4px 8px;font-size:12px;">
-      <option value="ALL">Todos los productos</option>
-    </select>
-  </div>
-
-  <input type="text" id="search-box" placeholder="🔍  Buscar producto...">
-  <button id="reset-btn">↺ Reset</button>
+<!-- FILTER ROW 2: months -->
+<div class="frow">
+  <span class="fl">Período</span>
+  <button class="mtodos" id="btn-mtodos" onclick="toggleAllMonths()">Todos</button>
+  <div style="display:flex;gap:3px;flex-wrap:wrap" id="fp-months"></div>
 </div>
 
+<!-- MAIN -->
 <div id="main">
-  <div class="kpi-row" id="kpi-row"></div>
 
-  <div class="grid2">
+  <!-- VIEW GENERAL -->
+  <div class="view active" id="v-overview">
+
+    <!-- Product banner (only when article selected) -->
+    <div id="prod-banner-wrap"></div>
+
+    <!-- Trend -->
     <div class="cc">
-      <div class="ct">Tendencia mensual <span class="ct-info" id="ti-trend"></span></div>
-      <div class="legend" id="leg-trend"></div>
-      <div style="position:relative;height:175px"><canvas id="ch-trend" role="img" aria-label="Tendencia mensual de consumibles por canal"></canvas></div>
+      <div class="ct">
+        Tendencia mensual
+        <div class="legend" style="margin:0">
+          <div class="li"><span class="ld" style="background:#3D8BFF"></span>Tiendas</div>
+          <div class="li"><span class="ld" style="background:#8B6BF0"></span>Taller</div>
+        </div>
+        <span class="ct-r" id="trend-total"></span>
+      </div>
+      <div style="position:relative;height:160px"><canvas id="ch-trend" role="img" aria-label="Tendencia mensual"></canvas></div>
     </div>
+
+    <!-- Category donut + store bars -->
+    <div class="grid2">
+      <div class="cc">
+        <div class="ct">Distribución por categoría <span class="ct-r" id="cat-tot"></span></div>
+        <div style="position:relative;height:145px"><canvas id="ch-cat" role="img" aria-label="Por categoría"></canvas></div>
+        <div class="legend" id="leg-cat" style="margin-top:8px"></div>
+      </div>
+      <div class="cc">
+        <div class="ct">Consumo por tienda</div>
+        <div id="store-bars"></div>
+      </div>
+    </div>
+
+    <!-- All products -->
     <div class="cc">
-      <div class="ct">Por categoría <span class="ct-info" id="ti-cat"></span></div>
-      <div style="position:relative;height:160px"><canvas id="ch-cat" role="img" aria-label="Distribución por categoría"></canvas></div>
-      <div class="legend" id="leg-cat" style="margin-top:8px"></div>
+      <div class="ct">
+        Todos los artículos
+        <div style="display:flex;gap:4px">
+          <button class="sort-btn on" id="sb-qty" onclick="sortAP('qty')">Total ↓</button>
+          <button class="sort-btn" id="sb-prom" onclick="sortAP('prom')">Promedio</button>
+          <button class="sort-btn" id="sb-name" onclick="sortAP('name')">Nombre</button>
+        </div>
+        <span class="ct-r" id="prod-count"></span>
+      </div>
+      <!-- Col headers -->
+      <div class="ap-head">
+        <span class="aph" style="flex:1.8;min-width:0">Artículo</span>
+        <span class="aph" style="flex:.8;min-width:0">Categoría</span>
+        <span class="aph" style="flex:1;min-width:40px"></span>
+        <span class="aph" style="min-width:54px;text-align:right">Total</span>
+        <span class="aph" style="min-width:70px;text-align:right">Prom/Mes</span>
+      </div>
+      <div style="max-height:340px;overflow-y:auto;padding-right:2px" id="all-prod-list"></div>
+    </div>
+
+  </div>
+
+  <!-- VIEW PROMEDIOS -->
+  <div class="view" id="v-promedios">
+    <div class="cc">
+      <div class="ct">
+        Promedio mensual por artículo
+        <div style="display:flex;gap:4px">
+          <button class="sort-btn sort-btn-amber on" id="ps-prom" onclick="sortProm('prom')">Promedio ↓</button>
+          <button class="sort-btn" id="ps-total" onclick="sortProm('total')">Total</button>
+          <button class="sort-btn" id="ps-name" onclick="sortProm('name')">Nombre</button>
+        </div>
+        <span class="ct-r" id="prom-info"></span>
+        <span style="font-size:9px;color:var(--t3)">Calor = mayor consumo promedio</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:170px">Artículo</th>
+              <th>Categoría</th>
+              <th class="num">Total</th>
+              <th class="num">Meses activos</th>
+              <th class="num s">Prom/Mes ↓</th>
+              <th style="min-width:160px">Escala relativa</th>
+            </tr>
+          </thead>
+          <tbody id="prom-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <div class="grid3">
-    <div class="cc">
-      <div class="ct">Por tienda</div>
-      <div id="store-wrap"></div>
-    </div>
-    <div class="cc">
-      <div class="ct">Todos los artículos <span class="ct-info" id="ti-prod"></span></div>
-      <div style="position:relative;height:520px;overflow-y:auto;border-radius:8px;padding-right:4px"><canvas id="ch-prod" role="img" aria-label="Listado completo de artículos por volumen"></canvas></div>
-    </div>
-  </div>
-
-  <div class="tc">
-    <div class="th">
-      <span class="tt">Detalle por artículo</span>
-      <span id="tbl-count" style="font-size:10px;color:var(--t3)"></span>
-    </div>
-    <div class="tw">
-      <table>
-        <thead>
-          <tr>
-            <th data-c="prod" class="s">Artículo ↕</th>
-            <th data-c="cat">Categoría</th>
-            <th data-c="store">Tienda</th>
-            <th data-c="canal">Canal</th>
-            <th data-c="qty" style="text-align:right">Total ↕</th>
-            <th data-c="meses" style="text-align:right">Meses</th>
-            <th data-c="prom" style="text-align:right">Prom/Mes</th>
-          </tr>
-        </thead>
-        <tbody id="tbl-body"></tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <script>
+const STORES=["CERRO VERDE", "GRIETA", "SAMBIL CHAC", "SAMBIL VAL", "TALLER", "TOLON"];
+const CATS=["Artículos Generales", "Artículos de Limpieza", "Consumibles de Venta", "Equipos de Oficina", "Útiles de Oficina"];
+const PRODS=["Alcohol", "Baygon", "Bolsa de papelera", "Bolsas Blancas", "Bolsas Grandes (venta)", "Bolsas Grandes Navidad 2024", "Bolsas Medianas (venta)", "Bolsas Medianas Navidad 2024", "Bolsas Negras", "Bolsas Pequeñas (venta)", "Bolsas Pequeñas Navidad 2024", "Bolsas XS (venta)", "Bolsas de basura", "Bolsas de envío", "Bolígrafos", "Bombillos", "Borradores", "Café", "Carpeta acordeón", "Carpetas", "Chinches", "Cinta Plástica", "Cinta Térmica", "Cinta de regalo", "Cinta doble faz", "Cinta métrica", "Clips", "Cloro", "Coleto", "Corrector", "Cuadernos", "Cutter", "Desinfectante", "Engrapadora", "Esencia difusor", "Esencia para bolsa", "Esponja de fregar", "Ganchos para carpeta", "Glade", "Grapas", "Guantes nitrilo", "Huellero", "Jabón de mano", "Jabón lava todo", "Limpidor de inodoro", "Linterna", "Lápiz", "Marcador pizarra", "Marcadores", "Mouse", "Mouse pad", "Papel Sanitario", "Papel máquina fiscal", "Papel punto de venta", "Paños amarillos", "Pega en barra", "Pega tanque", "Pilas AA", "Pilas AAA", "Pinza desbastar", "Piquetas", "Post-it", "Resaltador", "Resma de Hojas", "Sacagrapas", "Sacapuntas", "Sellador de piso", "Separadores", "Servilletas", "Sobre hoja carta", "Sobres amarillos", "Sobres para dinero", "Stickers Amarillos", "Stickers Regalo", "Stickers cierre de bolsas", "Tapabocas", "Teflón", "Tijera", "Tirro Papel", "Tirro para embalar", "Tiza", "Toallin", "Toner impresora", "Velcros"];
+const MONTHS=["Jan-25", "Feb-25", "Mar-25", "Aug-25", "Sep-25", "Oct-25", "Nov-25", "Dec-25", "Jan-26", "Feb-26", "Mar-26", "Apr-26", "May-26", "Oct-26"];
+const RECS=[[0, 1, 0, 76, 4, 4], [0, 1, 0, 76, 5, 3], [0, 1, 0, 76, 11, 2], [0, 1, 1, 0, 4, 2], [0, 1, 1, 3, 6, 80], [0, 1, 1, 3, 7, 40], [0, 1, 1, 3, 8, 30], [0, 1, 1, 3, 10, 30], [0, 1, 1, 3, 11, 10], [0, 1, 1, 8, 4, 10], [0, 1, 1, 8, 5, 5], [0, 1, 1, 8, 6, 11], [0, 1, 1, 8, 7, 25], [0, 1, 1, 8, 10, 5], [0, 1, 1, 8, 11, 10], [0, 1, 4, 17, 10, 1], [0, 1, 1, 27, 3, 1], [0, 1, 1, 27, 4, 1], [0, 1, 1, 27, 6, 2], [0, 1, 1, 27, 7, 2], [0, 1, 1, 27, 8, 1], [0, 1, 1, 27, 10, 1], [0, 1, 1, 27, 11, 1], [0, 1, 1, 27, 12, 1], [0, 1, 1, 32, 4, 2], [0, 1, 1, 32, 5, 1], [0, 1, 1, 32, 6, 3], [0, 1, 1, 32, 7, 1], [0, 1, 1, 32, 8, 1], [0, 1, 1, 32, 10, 1], [0, 1, 1, 32, 12, 1], [0, 1, 1, 34, 10, 2], [0, 1, 1, 34, 12, 2], [0, 1, 1, 38, 4, 2], [0, 1, 1, 38, 5, 2], [0, 1, 1, 38, 6, 1], [0, 1, 1, 38, 7, 1], [0, 1, 1, 38, 9, 1], [0, 1, 1, 38, 10, 1], [0, 1, 1, 38, 11, 1], [0, 1, 1, 38, 12, 1], [0, 1, 1, 42, 4, 1], [0, 1, 1, 42, 10, 1], [0, 1, 1, 43, 4, 1], [0, 1, 1, 51, 3, 2], [0, 1, 1, 51, 4, 6], [0, 1, 1, 51, 5, 16], [0, 1, 1, 51, 6, 20], [0, 1, 1, 51, 7, 16], [0, 1, 1, 51, 8, 7], [0, 1, 1, 51, 9, 4], [0, 1, 1, 51, 10, 8], [0, 1, 1, 51, 11, 2], [0, 1, 1, 51, 12, 2], [0, 1, 1, 68, 4, 1], [0, 1, 1, 68, 5, 3], [0, 1, 1, 68, 6, 3], [0, 1, 1, 68, 7, 3], [0, 1, 1, 68, 8, 1], [0, 1, 1, 68, 9, 2], [0, 1, 1, 68, 10, 1], [0, 1, 1, 68, 12, 1], [0, 1, 1, 3, 10, 10], [0, 1, 2, 4, 4, 300], [0, 1, 2, 4, 5, 100], [0, 1, 2, 4, 6, 800], [0, 1, 2, 4, 7, 200], [0, 1, 2, 4, 10, 300], [0, 1, 2, 4, 11, 300], [0, 1, 2, 6, 3, 200], [0, 1, 2, 6, 4, 900], [0, 1, 2, 6, 5, 400], [0, 1, 2, 6, 6, 800], [0, 1, 2, 6, 7, 1000], [0, 1, 2, 6, 9, 300], [0, 1, 2, 6, 10, 400], [0, 1, 2, 6, 11, 100], [0, 1, 2, 6, 12, 200], [0, 1, 2, 9, 3, 300], [0, 1, 2, 9, 4, 900], [0, 1, 2, 9, 5, 600], [0, 1, 2, 9, 6, 900], [0, 1, 2, 9, 7, 1200], [0, 1, 2, 9, 8, 300], [0, 1, 2, 9, 9, 300], [0, 1, 2, 9, 12, 200], [0, 1, 2, 22, 3, 3], [0, 1, 2, 22, 4, 4], [0, 1, 2, 22, 5, 4], [0, 1, 2, 22, 6, 4], [0, 1, 2, 22, 7, 5], [0, 1, 2, 22, 9, 2], [0, 1, 2, 22, 10, 3], [0, 1, 2, 52, 4, 9], [0, 1, 2, 52, 6, 5], [0, 1, 2, 52, 7, 10], [0, 1, 2, 52, 8, 10], [0, 1, 2, 52, 9, 5], [0, 1, 2, 52, 10, 6], [0, 1, 4, 61, 10, 5], [0, 1, 2, 72, 4, 10], [0, 1, 2, 72, 5, 250], [0, 1, 2, 72, 6, 1100], [0, 1, 2, 72, 7, 200], [0, 1, 2, 72, 8, 800], [0, 1, 2, 73, 3, 100], [0, 1, 2, 73, 4, 1100], [0, 1, 2, 73, 5, 1469], [0, 1, 2, 73, 6, 1700], [0, 1, 2, 73, 7, 2300], [0, 1, 2, 73, 8, 1000], [0, 1, 2, 73, 9, 1000], [0, 1, 2, 73, 10, 1500], [0, 1, 2, 74, 4, 1260], [0, 1, 2, 74, 5, 1222], [0, 1, 2, 74, 6, 1600], [0, 1, 2, 74, 7, 1700], [0, 1, 2, 74, 8, 1000], [0, 1, 2, 74, 12, 500], [0, 1, 0, 83, 5, 100], [0, 1, 0, 83, 10, 50], [0, 1, 4, 14, 4, 6], [0, 1, 4, 14, 6, 1], [0, 1, 4, 14, 7, 10], [0, 1, 4, 14, 8, 5], [0, 1, 4, 14, 10, 5], [0, 1, 4, 17, 3, 1], [0, 1, 4, 17, 4, 4], [0, 1, 4, 17, 5, 2], [0, 1, 4, 17, 6, 2], [0, 1, 4, 17, 7, 3], [0, 1, 4, 17, 8, 2], [0, 1, 4, 17, 9, 2], [0, 1, 4, 17, 10, 3], [0, 1, 4, 17, 11, 9], [0, 1, 4, 17, 12, 2], [0, 1, 4, 21, 10, 4], [0, 1, 4, 26, 4, 1], [0, 1, 4, 26, 10, 1], [0, 1, 4, 59, 4, 2], [0, 1, 4, 59, 8, 1], [0, 1, 4, 61, 4, 5], [0, 1, 4, 61, 9, 5], [0, 1, 4, 63, 4, 2], [0, 1, 4, 63, 5, 1], [0, 1, 4, 63, 7, 2], [0, 1, 4, 63, 9, 1], [0, 1, 4, 63, 10, 1], [0, 1, 4, 63, 11, 1], [0, 1, 4, 71, 4, 100], [0, 1, 4, 71, 5, 50], [0, 1, 4, 71, 6, 50], [0, 1, 4, 71, 7, 100], [0, 1, 4, 71, 8, 50], [0, 1, 4, 71, 9, 50], [0, 1, 4, 71, 10, 50], [0, 1, 4, 71, 12, 50], [0, 1, 3, 82, 11, 1], [0, 3, 4, 21, 3, 2], [0, 3, 4, 21, 5, 2], [0, 3, 4, 21, 7, 2], [0, 3, 4, 21, 9, 2], [0, 3, 0, 76, 4, 3], [0, 3, 0, 76, 5, 6], [0, 3, 1, 0, 5, 2], [0, 3, 1, 0, 6, 1], [0, 3, 1, 3, 4, 30], [0, 3, 1, 3, 5, 70], [0, 3, 1, 3, 6, 85], [0, 3, 1, 3, 7, 25], [0, 3, 1, 3, 8, 15], [0, 3, 1, 3, 9, 10], [0, 3, 1, 8, 3, 15], [0, 3, 1, 8, 5, 5], [0, 3, 1, 8, 6, 30], [0, 3, 1, 8, 7, 10], [0, 3, 1, 8, 8, 15], [0, 3, 1, 8, 9, 8], [0, 3, 1, 27, 4, 1], [0, 3, 1, 27, 7, 1], [0, 3, 1, 27, 8, 1], [0, 3, 1, 28, 6, 1], [0, 3, 1, 32, 4, 1], [0, 3, 1, 32, 5, 2], [0, 3, 1, 32, 6, 1], [0, 3, 1, 32, 8, 1], [0, 3, 1, 38, 4, 1], [0, 3, 1, 38, 5, 1], [0, 3, 1, 38, 6, 1], [0, 3, 1, 38, 7, 1], [0, 3, 1, 38, 8, 1], [0, 3, 1, 42, 5, 1], [0, 3, 1, 51, 3, 3], [0, 3, 1, 51, 4, 6], [0, 3, 1, 51, 5, 6], [0, 3, 1, 51, 6, 7], [0, 3, 1, 51, 7, 9], [0, 3, 1, 51, 8, 8], [0, 3, 1, 51, 9, 7], [0, 3, 1, 54, 6, 2], [0, 3, 1, 54, 7, 2], [0, 3, 1, 68, 3, 1], [0, 3, 1, 68, 4, 3], [0, 3, 1, 68, 5, 3], [0, 3, 1, 68, 6, 3], [0, 3, 1, 68, 7, 3], [0, 3, 1, 68, 8, 4], [0, 3, 1, 68, 9, 3], [0, 3, 1, 81, 4, 1], [0, 3, 2, 4, 1, 100], [0, 3, 2, 4, 3, 50], [0, 3, 2, 4, 4, 100], [0, 3, 2, 4, 5, 350], [0, 3, 2, 4, 6, 500], [0, 3, 2, 4, 7, 450], [0, 3, 2, 4, 8, 50], [0, 3, 2, 4, 10, 200], [0, 3, 2, 4, 12, 400], [0, 3, 2, 6, 3, 200], [0, 3, 2, 6, 4, 600], [0, 3, 2, 6, 5, 450], [0, 3, 2, 6, 6, 600], [0, 3, 2, 6, 7, 1550], [0, 3, 2, 6, 8, 400], [0, 3, 2, 6, 9, 600], [0, 3, 2, 6, 10, 900], [0, 3, 2, 6, 11, 400], [0, 3, 2, 6, 12, 400], [0, 3, 2, 9, 3, 200], [0, 3, 2, 9, 4, 600], [0, 3, 2, 9, 5, 450], [0, 3, 2, 9, 6, 600], [0, 3, 2, 9, 7, 1900], [0, 3, 2, 9, 8, 500], [0, 3, 2, 9, 9, 400], [0, 3, 2, 11, 12, 200], [0, 3, 4, 14, 10, 4], [0, 3, 4, 17, 10, 2], [0, 3, 4, 17, 11, 2], [0, 3, 4, 17, 12, 2], [0, 3, 2, 22, 3, 2], [0, 3, 2, 22, 4, 4], [0, 3, 2, 22, 5, 3], [0, 3, 2, 22, 6, 2], [0, 3, 2, 22, 7, 6], [0, 3, 2, 22, 8, 2], [0, 3, 2, 22, 9, 2], [0, 3, 2, 22, 10, 4], [0, 3, 2, 23, 10, 3], [0, 3, 2, 23, 11, 2], [0, 3, 1, 27, 10, 1], [0, 3, 1, 27, 12, 1], [0, 3, 1, 28, 10, 1], [0, 3, 1, 32, 11, 1], [0, 3, 1, 34, 12, 2], [0, 3, 1, 38, 11, 1], [0, 3, 1, 38, 12, 1], [0, 3, 4, 47, 10, 2], [0, 3, 1, 51, 10, 4], [0, 3, 2, 52, 4, 17], [0, 3, 2, 52, 6, 15], [0, 3, 2, 52, 7, 6], [0, 3, 2, 52, 8, 12], [0, 3, 2, 52, 9, 6], [0, 3, 1, 54, 10, 2], [0, 3, 4, 55, 10, 2], [0, 3, 0, 58, 10, 2], [0, 3, 0, 58, 11, 1], [0, 3, 4, 61, 10, 5], [0, 3, 4, 61, 11, 1], [0, 3, 4, 63, 10, 1], [0, 3, 4, 65, 10, 1], [0, 3, 1, 68, 10, 2], [0, 3, 1, 68, 11, 1], [0, 3, 4, 69, 10, 20], [0, 3, 4, 71, 10, 100], [0, 3, 2, 72, 4, 350], [0, 3, 2, 72, 5, 600], [0, 3, 2, 72, 6, 1300], [0, 3, 2, 73, 4, 500], [0, 3, 2, 73, 5, 695], [0, 3, 2, 73, 6, 300], [0, 3, 2, 73, 7, 1200], [0, 3, 2, 73, 8, 200], [0, 3, 2, 73, 9, 400], [0, 3, 2, 73, 10, 600], [0, 3, 2, 74, 3, 250], [0, 3, 2, 74, 4, 578], [0, 3, 2, 74, 5, 1040], [0, 3, 2, 74, 6, 540], [0, 3, 2, 74, 7, 900], [0, 3, 2, 74, 8, 400], [0, 3, 2, 74, 9, 200], [0, 3, 3, 82, 10, 1], [0, 3, 4, 14, 5, 2], [0, 3, 4, 14, 6, 1], [0, 3, 4, 14, 7, 10], [0, 3, 4, 14, 9, 5], [0, 3, 4, 17, 3, 1], [0, 3, 4, 17, 4, 1], [0, 3, 4, 17, 5, 3], [0, 3, 4, 17, 6, 3], [0, 3, 4, 17, 7, 2], [0, 3, 4, 17, 8, 2], [0, 3, 4, 21, 6, 3], [0, 3, 4, 21, 7, 3], [0, 3, 4, 26, 4, 1], [0, 3, 4, 47, 10, 2], [0, 3, 4, 61, 3, 2], [0, 3, 4, 61, 4, 2], [0, 3, 4, 61, 6, 5], [0, 3, 4, 61, 9, 3], [0, 3, 4, 63, 4, 1], [0, 3, 4, 63, 5, 1], [0, 3, 4, 63, 6, 1], [0, 3, 4, 71, 4, 50], [0, 3, 4, 71, 5, 50], [0, 3, 4, 71, 7, 60], [0, 3, 4, 71, 9, 50], [0, 3, 4, 71, 13, 30], [0, 0, 0, 76, 5, 2], [0, 0, 1, 0, 5, 1], [0, 0, 1, 0, 7, 1], [0, 0, 1, 0, 11, 1], [0, 0, 1, 3, 4, 50], [0, 0, 1, 3, 6, 200], [0, 0, 1, 3, 7, 200], [0, 0, 1, 3, 10, 30], [0, 0, 1, 8, 2, 100], [0, 0, 1, 8, 7, 50], [0, 0, 1, 8, 11, 200], [0, 0, 1, 27, 0, 1], [0, 0, 1, 27, 2, 1], [0, 0, 1, 27, 5, 1], [0, 0, 1, 27, 7, 2], [0, 0, 1, 27, 11, 1], [0, 0, 1, 28, 3, 1], [0, 0, 1, 28, 6, 2], [0, 0, 1, 28, 10, 2], [0, 0, 1, 32, 0, 1], [0, 0, 1, 32, 1, 5], [0, 0, 1, 32, 5, 2], [0, 0, 1, 32, 6, 1], [0, 0, 1, 32, 7, 6], [0, 0, 1, 32, 8, 1], [0, 0, 1, 32, 9, 1], [0, 0, 1, 32, 11, 6], [0, 0, 1, 34, 12, 2], [0, 0, 1, 42, 7, 1], [0, 0, 1, 51, 0, 8], [0, 0, 1, 51, 2, 2], [0, 0, 1, 51, 3, 3], [0, 0, 1, 51, 5, 2], [0, 0, 1, 51, 6, 7], [0, 0, 1, 51, 7, 19], [0, 0, 1, 51, 9, 4], [0, 0, 1, 51, 10, 8], [0, 0, 1, 51, 11, 4], [0, 0, 1, 68, 1, 2], [0, 0, 1, 68, 2, 1], [0, 0, 1, 68, 5, 1], [0, 0, 1, 68, 7, 1], [0, 0, 1, 68, 9, 2], [0, 0, 1, 68, 10, 1], [0, 0, 1, 81, 5, 1], [0, 0, 2, 4, 0, 200], [0, 0, 2, 4, 1, 100], [0, 0, 2, 4, 3, 100], [0, 0, 2, 4, 4, 200], [0, 0, 2, 4, 5, 150], [0, 0, 2, 4, 6, 200], [0, 0, 2, 4, 7, 700], [0, 0, 2, 4, 9, 150], [0, 0, 2, 4, 10, 100], [0, 0, 2, 4, 11, 150], [0, 0, 2, 6, 0, 200], [0, 0, 2, 6, 1, 200], [0, 0, 2, 6, 3, 200], [0, 0, 2, 6, 4, 350], [0, 0, 2, 6, 5, 100], [0, 0, 2, 6, 6, 400], [0, 0, 2, 6, 7, 1200], [0, 0, 2, 6, 9, 200], [0, 0, 2, 6, 10, 400], [0, 0, 2, 6, 11, 600], [0, 0, 2, 9, 0, 300], [0, 0, 2, 9, 3, 200], [0, 0, 2, 9, 4, 400], [0, 0, 2, 9, 5, 400], [0, 0, 2, 9, 6, 600], [0, 0, 2, 9, 7, 1050], [0, 0, 2, 9, 9, 200], [0, 0, 2, 9, 11, 1050], [0, 0, 2, 22, 0, 2], [0, 0, 2, 22, 1, 3], [0, 0, 2, 22, 5, 3], [0, 0, 2, 22, 7, 5], [0, 0, 2, 22, 9, 5], [0, 0, 2, 22, 10, 4], [0, 0, 2, 22, 11, 3], [0, 0, 2, 52, 3, 10], [0, 0, 2, 52, 5, 5], [0, 0, 2, 52, 6, 15], [0, 0, 2, 52, 7, 30], [0, 0, 2, 52, 9, 5], [0, 0, 2, 52, 10, 15], [0, 0, 2, 52, 11, 10], [0, 0, 2, 72, 7, 200], [0, 0, 2, 73, 0, 700], [0, 0, 2, 73, 1, 1000], [0, 0, 2, 73, 3, 200], [0, 0, 2, 73, 4, 400], [0, 0, 2, 73, 5, 800], [0, 0, 2, 73, 6, 700], [0, 0, 2, 73, 7, 3400], [0, 0, 2, 73, 9, 1200], [0, 0, 2, 73, 10, 3000], [0, 0, 2, 73, 11, 500], [0, 0, 2, 74, 0, 300], [0, 0, 2, 74, 3, 200], [0, 0, 2, 74, 4, 340], [0, 0, 2, 74, 5, 540], [0, 0, 2, 74, 6, 400], [0, 0, 2, 74, 7, 3000], [0, 0, 2, 74, 9, 700], [0, 0, 4, 14, 0, 1], [0, 0, 4, 14, 10, 7], [0, 0, 4, 17, 0, 1], [0, 0, 4, 17, 1, 1], [0, 0, 4, 17, 2, 1], [0, 0, 4, 17, 4, 3], [0, 0, 4, 17, 5, 1], [0, 0, 4, 17, 6, 2], [0, 0, 4, 17, 7, 4], [0, 0, 4, 17, 9, 3], [0, 0, 4, 17, 10, 3], [0, 0, 4, 17, 11, 3], [0, 0, 4, 17, 12, 1], [0, 0, 4, 26, 10, 2], [0, 0, 2, 53, 3, 10], [0, 0, 2, 53, 5, 12], [0, 0, 2, 53, 7, 20], [0, 0, 4, 59, 10, 3], [0, 0, 4, 61, 7, 4], [0, 0, 4, 61, 10, 5], [0, 0, 4, 63, 4, 2], [0, 0, 4, 63, 6, 1], [0, 0, 4, 71, 4, 50], [0, 0, 4, 71, 5, 55], [0, 0, 4, 71, 7, 100], [0, 2, 1, 0, 8, 1], [0, 2, 1, 1, 9, 1], [0, 2, 1, 3, 4, 25], [0, 2, 1, 3, 5, 50], [0, 2, 1, 3, 6, 10], [0, 2, 1, 3, 7, 100], [0, 2, 1, 3, 8, 150], [0, 2, 1, 3, 9, 50], [0, 2, 1, 3, 10, 55], [0, 2, 1, 3, 11, 50], [0, 2, 1, 3, 12, 50], [0, 2, 1, 8, 4, 20], [0, 2, 1, 8, 8, 30], [0, 2, 1, 8, 11, 20], [0, 2, 1, 8, 12, 30], [0, 2, 2, 9, 11, 300], [0, 2, 4, 17, 10, 1], [0, 2, 2, 22, 11, 2], [0, 2, 1, 27, 3, 1], [0, 2, 1, 27, 4, 1], [0, 2, 1, 27, 5, 1], [0, 2, 1, 27, 6, 1], [0, 2, 1, 27, 7, 2], [0, 2, 1, 27, 8, 1], [0, 2, 1, 27, 9, 1], [0, 2, 1, 27, 10, 2], [0, 2, 1, 28, 5, 1], [0, 2, 1, 32, 3, 1], [0, 2, 1, 32, 4, 1], [0, 2, 1, 32, 5, 2], [0, 2, 1, 32, 6, 1], [0, 2, 1, 32, 7, 3], [0, 2, 1, 32, 8, 3], [0, 2, 1, 32, 9, 1], [0, 2, 1, 32, 10, 1], [0, 2, 1, 32, 12, 1], [0, 2, 1, 34, 5, 2], [0, 2, 1, 34, 12, 4], [0, 2, 2, 35, 4, 1], [0, 2, 1, 36, 9, 1], [0, 2, 1, 38, 3, 1], [0, 2, 1, 38, 4, 1], [0, 2, 1, 38, 5, 3], [0, 2, 1, 38, 6, 1], [0, 2, 1, 38, 7, 1], [0, 2, 1, 38, 8, 2], [0, 2, 1, 38, 9, 1], [0, 2, 1, 38, 10, 3], [0, 2, 1, 38, 11, 1], [0, 2, 1, 38, 12, 1], [0, 2, 1, 42, 4, 2], [0, 2, 1, 42, 6, 1], [0, 2, 1, 42, 10, 1], [0, 2, 1, 44, 9, 1], [0, 2, 1, 44, 10, 1], [0, 2, 4, 48, 11, 2], [0, 2, 1, 51, 3, 2], [0, 2, 1, 51, 4, 7], [0, 2, 1, 51, 5, 3], [0, 2, 1, 51, 6, 1], [0, 2, 1, 51, 7, 12], [0, 2, 1, 51, 8, 2], [0, 2, 1, 51, 10, 2], [0, 2, 1, 51, 11, 1], [0, 2, 2, 52, 10, 5], [0, 2, 1, 54, 4, 2], [0, 2, 1, 54, 7, 2], [0, 2, 1, 54, 9, 2], [0, 2, 1, 68, 3, 1], [0, 2, 1, 68, 4, 2], [0, 2, 1, 68, 5, 3], [0, 2, 1, 68, 6, 2], [0, 2, 1, 68, 7, 3], [0, 2, 1, 68, 8, 3], [0, 2, 1, 68, 9, 1], [0, 2, 1, 68, 10, 1], [0, 2, 1, 68, 11, 2], [0, 2, 1, 68, 12, 1], [0, 2, 2, 74, 11, 100], [0, 2, 4, 78, 11, 2], [0, 2, 4, 79, 11, 3], [0, 2, 2, 4, 3, 100], [0, 2, 2, 4, 4, 400], [0, 2, 2, 4, 5, 170], [0, 2, 2, 4, 6, 250], [0, 2, 2, 4, 7, 700], [0, 2, 2, 4, 8, 200], [0, 2, 2, 4, 9, 300], [0, 2, 2, 4, 10, 100], [0, 2, 2, 4, 11, 200], [0, 2, 2, 6, 3, 200], [0, 2, 2, 6, 4, 400], [0, 2, 2, 6, 5, 170], [0, 2, 2, 6, 6, 250], [0, 2, 2, 6, 7, 1300], [0, 2, 2, 6, 8, 200], [0, 2, 2, 6, 9, 300], [0, 2, 2, 6, 10, 500], [0, 2, 2, 6, 11, 500], [0, 2, 2, 6, 12, 200], [0, 2, 1, 8, 11, 20], [0, 2, 2, 9, 4, 700], [0, 2, 2, 9, 5, 270], [0, 2, 2, 9, 6, 200], [0, 2, 2, 9, 7, 1500], [0, 2, 2, 9, 8, 200], [0, 2, 2, 9, 9, 200], [0, 2, 2, 9, 11, 500], [0, 2, 2, 9, 12, 200], [0, 2, 4, 17, 11, 2], [0, 2, 2, 22, 3, 2], [0, 2, 2, 22, 4, 5], [0, 2, 2, 22, 5, 2], [0, 2, 2, 22, 6, 2], [0, 2, 2, 22, 7, 7], [0, 2, 2, 22, 8, 3], [0, 2, 2, 22, 10, 6], [0, 2, 2, 22, 12, 2], [0, 2, 1, 32, 10, 1], [0, 2, 2, 35, 10, 1], [0, 2, 1, 38, 11, 2], [0, 2, 2, 39, 11, 200], [0, 2, 1, 44, 11, 2], [0, 2, 4, 47, 11, 2], [0, 2, 1, 51, 11, 2], [0, 2, 2, 52, 4, 10], [0, 2, 2, 52, 5, 5], [0, 2, 2, 52, 7, 24], [0, 2, 2, 52, 8, 5], [0, 2, 2, 52, 9, 5], [0, 2, 2, 52, 10, 5], [0, 2, 4, 61, 10, 3], [0, 2, 4, 63, 11, 2], [0, 2, 1, 68, 11, 1], [0, 2, 2, 72, 5, 50], [0, 2, 2, 72, 6, 200], [0, 2, 2, 72, 7, 100], [0, 2, 2, 72, 8, 200], [0, 2, 2, 72, 9, 100], [0, 2, 2, 72, 10, 100], [0, 2, 2, 73, 3, 250], [0, 2, 2, 73, 4, 850], [0, 2, 2, 73, 5, 500], [0, 2, 2, 73, 6, 400], [0, 2, 2, 73, 7, 1700], [0, 2, 2, 73, 8, 450], [0, 2, 2, 73, 9, 700], [0, 2, 2, 73, 10, 303], [0, 2, 2, 74, 3, 250], [0, 2, 2, 74, 4, 550], [0, 2, 2, 74, 5, 211], [0, 2, 2, 74, 6, 200], [0, 2, 2, 74, 7, 1750], [0, 2, 2, 74, 8, 300], [0, 2, 2, 74, 10, 300], [0, 2, 2, 74, 12, 50], [0, 2, 1, 3, 6, 50], [0, 2, 1, 3, 10, 15], [0, 2, 1, 32, 9, 1], [0, 2, 1, 32, 10, 1], [0, 2, 4, 33, 9, 1], [0, 2, 2, 35, 6, 2], [0, 2, 1, 38, 9, 1], [0, 2, 1, 51, 9, 4], [0, 2, 2, 52, 9, 6], [0, 2, 2, 52, 10, 5], [0, 2, 4, 61, 9, 2], [0, 2, 1, 68, 10, 1], [0, 2, 4, 70, 6, 1], [0, 2, 2, 73, 9, 350], [0, 2, 2, 73, 10, 1000], [0, 2, 4, 79, 9, 3], [0, 2, 1, 0, 11, 1], [0, 2, 1, 3, 10, 1], [0, 2, 4, 14, 3, 1], [0, 2, 4, 14, 12, 1], [0, 2, 4, 17, 3, 1], [0, 2, 4, 17, 4, 2], [0, 2, 4, 17, 5, 3], [0, 2, 4, 17, 6, 2], [0, 2, 4, 17, 7, 4], [0, 2, 4, 17, 8, 3], [0, 2, 4, 17, 9, 1], [0, 2, 4, 17, 10, 1], [0, 2, 4, 17, 12, 1], [0, 2, 4, 26, 10, 1], [0, 2, 1, 32, 11, 1], [0, 2, 4, 46, 4, 3], [0, 2, 4, 46, 10, 1], [0, 2, 4, 61, 3, 2], [0, 2, 4, 61, 5, 4], [0, 2, 4, 61, 10, 4], [0, 2, 4, 63, 3, 1], [0, 2, 4, 63, 4, 2], [0, 2, 4, 63, 7, 2], [0, 2, 4, 63, 8, 1], [0, 2, 4, 63, 9, 1], [0, 2, 4, 63, 10, 1], [0, 2, 4, 63, 12, 1], [0, 2, 4, 71, 4, 110], [0, 2, 4, 71, 12, 30], [0, 2, 4, 79, 4, 3], [0, 2, 4, 79, 10, 3], [0, 5, 1, 3, 12, 100], [0, 5, 2, 4, 12, 200], [0, 5, 2, 6, 12, 200], [0, 5, 1, 8, 12, 100], [0, 5, 2, 9, 12, 300], [0, 5, 4, 17, 12, 1], [0, 5, 1, 27, 12, 1], [0, 5, 4, 31, 12, 1], [0, 5, 1, 32, 12, 1], [0, 5, 2, 35, 12, 2], [0, 5, 1, 68, 12, 1], [0, 5, 4, 71, 12, 50], [0, 5, 2, 72, 12, 200], [0, 5, 2, 73, 12, 500], [0, 5, 4, 77, 12, 1], [0, 5, 4, 79, 12, 3], [1, 4, 2, 9, 4, 10], [1, 4, 2, 6, 4, 5], [1, 4, 2, 4, 4, 5], [1, 4, 4, 64, 4, 1], [1, 4, 4, 18, 4, 1], [1, 4, 4, 18, 4, 1], [1, 4, 4, 18, 4, 1], [1, 4, 1, 2, 4, 375], [1, 4, 4, 79, 4, 1], [1, 4, 4, 79, 4, 1], [1, 4, 4, 31, 4, 1], [1, 4, 4, 79, 4, 3], [1, 4, 4, 48, 4, 1], [1, 4, 4, 14, 4, 1], [1, 4, 4, 79, 4, 1], [1, 4, 2, 9, 4, 10], [1, 4, 2, 6, 4, 10], [1, 4, 2, 4, 4, 10], [1, 4, 4, 48, 4, 1], [1, 4, 4, 14, 4, 1], [1, 4, 1, 51, 4, 5], [1, 4, 1, 51, 4, 1], [1, 4, 4, 17, 4, 1], [1, 4, 4, 63, 4, 3], [1, 4, 4, 26, 4, 1], [1, 4, 4, 71, 4, 100], [1, 4, 4, 79, 4, 2], [1, 4, 2, 13, 4, 15], [1, 4, 4, 69, 4, 31], [1, 4, 1, 51, 4, 3], [1, 4, 1, 51, 4, 1], [1, 4, 1, 0, 4, 1], [1, 4, 1, 42, 4, 1], [1, 4, 4, 17, 4, 5], [1, 4, 4, 48, 4, 2], [1, 4, 4, 79, 4, 2], [1, 4, 3, 82, 4, 1], [1, 4, 4, 61, 4, 2], [1, 4, 4, 77, 4, 4], [1, 4, 4, 60, 4, 5], [1, 4, 1, 32, 4, 1], [1, 4, 2, 13, 4, 10], [1, 4, 4, 79, 4, 2], [1, 4, 4, 79, 4, 1], [1, 4, 4, 79, 4, 1], [1, 4, 4, 14, 4, 5], [1, 4, 4, 46, 4, 10], [1, 4, 4, 48, 4, 3], [1, 4, 4, 62, 4, 2], [1, 4, 4, 62, 4, 2], [1, 4, 0, 58, 4, 2], [1, 4, 4, 63, 4, 1], [1, 4, 1, 51, 4, 2], [1, 4, 4, 79, 4, 2], [1, 4, 4, 25, 4, 6], [1, 4, 4, 60, 4, 2], [1, 4, 4, 46, 4, 3], [1, 4, 4, 71, 4, 50], [1, 4, 4, 46, 4, 1], [1, 4, 4, 48, 4, 1], [1, 4, 4, 48, 4, 1], [1, 4, 4, 46, 4, 1], [1, 4, 4, 71, 4, 10], [1, 4, 4, 48, 4, 1], [1, 4, 4, 79, 4, 1], [1, 4, 1, 2, 4, 25], [1, 4, 4, 21, 4, 1], [1, 4, 4, 21, 4, 1], [1, 4, 2, 6, 4, 200], [1, 4, 2, 9, 4, 200], [1, 4, 2, 74, 4, 140], [1, 4, 2, 73, 4, 200], [1, 4, 1, 68, 4, 1], [1, 4, 2, 22, 4, 1], [1, 4, 1, 43, 4, 1], [1, 4, 1, 27, 4, 1], [1, 4, 1, 32, 4, 1], [1, 4, 1, 51, 4, 4], [1, 4, 1, 51, 4, 2], [1, 4, 1, 2, 4, 25], [1, 4, 4, 79, 4, 2], [1, 4, 4, 63, 4, 1], [1, 4, 4, 31, 4, 3], [1, 4, 4, 14, 4, 3], [1, 4, 4, 48, 4, 1], [1, 4, 4, 48, 4, 2], [1, 4, 0, 57, 4, 1], [1, 4, 4, 21, 4, 1], [1, 4, 1, 28, 4, 1], [1, 4, 1, 54, 4, 2], [1, 4, 1, 12, 4, 24], [1, 4, 1, 2, 4, 25], [1, 4, 4, 17, 4, 3], [1, 4, 1, 51, 4, 1], [1, 4, 1, 51, 4, 2], [1, 4, 1, 38, 4, 1], [1, 4, 4, 62, 4, 1], [1, 4, 4, 79, 4, 1], [1, 4, 4, 79, 4, 2], [1, 4, 2, 6, 4, 30], [1, 4, 2, 9, 4, 30], [1, 4, 1, 2, 4, 25], [1, 4, 1, 68, 4, 1], [1, 4, 0, 57, 4, 1], [1, 4, 0, 58, 4, 1], [1, 4, 4, 63, 4, 1], [1, 4, 4, 14, 4, 2], [1, 4, 4, 79, 4, 2], [1, 4, 4, 61, 4, 2], [1, 4, 4, 30, 4, 1], [1, 4, 4, 14, 4, 1], [1, 4, 4, 63, 4, 1], [1, 4, 2, 6, 4, 20], [1, 4, 2, 9, 4, 10], [1, 4, 1, 51, 4, 1], [1, 4, 1, 2, 4, 25], [1, 4, 2, 9, 4, 10], [1, 4, 3, 82, 4, 1], [1, 4, 1, 12, 4, 10], [1, 4, 4, 21, 4, 1], [1, 4, 1, 2, 4, 50], [1, 4, 1, 0, 4, 1], [1, 4, 1, 2, 4, 10], [1, 4, 1, 12, 4, 2], [1, 4, 1, 28, 4, 1], [1, 4, 1, 32, 4, 1], [1, 4, 4, 77, 4, 2], [1, 4, 4, 60, 4, 2], [1, 4, 1, 54, 4, 1], [1, 4, 4, 62, 4, 1], [1, 4, 4, 21, 4, 1], [1, 4, 4, 46, 4, 3], [1, 4, 4, 48, 4, 4], [1, 4, 4, 63, 4, 1], [1, 4, 2, 9, 4, 20], [1, 4, 2, 6, 4, 20], [1, 4, 4, 79, 4, 11], [1, 4, 1, 51, 4, 4], [1, 4, 1, 2, 4, 50], [1, 4, 1, 32, 4, 1], [1, 4, 1, 27, 4, 1], [1, 4, 4, 17, 4, 5], [1, 4, 1, 42, 4, 1], [1, 4, 1, 12, 4, 25], [1, 4, 1, 2, 4, 25], [1, 4, 1, 54, 4, 3], [1, 4, 1, 51, 4, 4], [1, 4, 1, 27, 4, 1], [1, 4, 1, 51, 4, 1], [1, 4, 1, 38, 4, 1], [1, 4, 4, 59, 4, 7], [1, 4, 0, 58, 4, 2], [1, 4, 0, 57, 4, 1], [1, 4, 3, 49, 4, 1], [1, 4, 4, 63, 4, 3], [1, 4, 1, 27, 4, 1], [1, 4, 1, 32, 4, 1], [1, 4, 1, 51, 4, 4], [1, 4, 1, 51, 4, 1], [1, 4, 4, 14, 4, 5], [1, 4, 2, 9, 4, 40], [1, 4, 2, 9, 4, 32], [1, 4, 3, 82, 4, 1], [1, 4, 4, 25, 4, 1], [1, 4, 4, 21, 4, 2], [1, 4, 4, 65, 4, 1], [1, 4, 4, 21, 4, 1], [1, 4, 4, 14, 4, 2], [1, 4, 2, 4, 4, 150], [1, 4, 2, 6, 4, 520], [1, 4, 2, 9, 4, 740], [1, 4, 2, 23, 4, 1], [1, 4, 2, 23, 4, 1], [1, 4, 2, 23, 4, 1], [1, 4, 2, 23, 4, 1], [1, 4, 4, 79, 4, 2], [1, 4, 2, 74, 4, 700], [1, 4, 2, 9, 4, 220], [1, 4, 4, 31, 4, 1], [1, 4, 4, 21, 4, 1], [1, 4, 4, 79, 4, 2], [1, 4, 4, 21, 4, 2], [1, 4, 4, 46, 4, 1], [1, 4, 4, 79, 4, 1], [1, 4, 4, 14, 5, 1], [1, 4, 4, 48, 5, 1], [1, 4, 4, 62, 5, 1], [1, 4, 4, 21, 5, 1], [1, 4, 1, 51, 5, 2], [1, 4, 1, 51, 5, 8], [1, 4, 1, 2, 5, 25], [1, 4, 1, 27, 5, 2], [1, 4, 4, 33, 5, 3], [1, 4, 4, 61, 5, 2], [1, 4, 4, 63, 5, 1], [1, 4, 4, 46, 5, 2], [1, 4, 4, 79, 5, 1], [1, 4, 4, 79, 5, 11], [1, 4, 2, 9, 5, 10], [1, 4, 2, 6, 5, 10], [1, 4, 4, 63, 5, 1], [1, 4, 0, 57, 5, 1], [1, 4, 4, 60, 5, 1], [1, 4, 1, 27, 5, 2], [1, 4, 1, 32, 5, 4], [1, 4, 1, 51, 5, 7], [1, 4, 1, 2, 5, 100], [1, 4, 1, 42, 5, 1], [1, 4, 1, 43, 5, 1], [1, 4, 4, 79, 5, 2], [1, 4, 1, 12, 5, 10], [1, 4, 4, 48, 5, 1], [1, 4, 4, 79, 5, 2], [1, 4, 4, 46, 5, 1], [1, 4, 4, 17, 5, 10], [1, 4, 4, 79, 5, 1], [1, 4, 4, 14, 5, 2], [1, 4, 4, 46, 5, 5], [1, 4, 4, 30, 5, 1], [1, 4, 4, 21, 5, 2], [1, 4, 4, 61, 5, 1], [1, 4, 4, 77, 5, 2], [1, 4, 4, 25, 5, 2], [1, 4, 4, 21, 5, 2], [1, 4, 4, 14, 5, 5], [1, 4, 4, 46, 5, 1], [1, 4, 4, 30, 5, 1], [1, 4, 4, 14, 5, 1], [1, 4, 4, 79, 5, 4], [1, 4, 1, 0, 5, 1], [1, 4, 4, 14, 5, 2], [1, 4, 2, 9, 5, 50], [1, 4, 2, 6, 5, 50], [1, 4, 4, 17, 5, 2], [1, 4, 2, 73, 5, 200], [1, 4, 2, 74, 5, 140], [1, 4, 1, 2, 5, 5], [1, 4, 4, 80, 5, 2], [1, 4, 4, 80, 5, 14], [1, 4, 4, 14, 5, 1], [1, 4, 4, 46, 5, 3], [1, 4, 4, 30, 5, 1], [1, 4, 4, 48, 5, 3], [1, 4, 4, 21, 5, 1], [1, 4, 4, 60, 5, 1], [1, 4, 4, 20, 5, 1], [1, 4, 4, 79, 5, 1], [1, 4, 3, 49, 5, 1], [1, 4, 0, 57, 5, 1], [1, 4, 2, 9, 5, 40], [1, 4, 1, 12, 5, 24], [1, 4, 4, 63, 5, 1], [1, 4, 4, 17, 5, 5], [1, 4, 4, 14, 5, 2], [1, 4, 4, 21, 5, 3], [1, 4, 4, 79, 5, 1], [1, 4, 4, 18, 5, 1], [1, 4, 4, 30, 5, 3], [1, 4, 4, 79, 5, 18], [1, 4, 2, 13, 5, 30], [1, 4, 2, 9, 5, 30], [1, 4, 2, 6, 5, 30], [1, 4, 2, 4, 5, 10], [1, 4, 4, 19, 5, 1], [1, 4, 4, 61, 5, 2], [1, 4, 4, 48, 5, 1], [1, 4, 4, 29, 5, 1], [1, 4, 4, 21, 5, 1], [1, 4, 4, 30, 5, 1], [1, 4, 2, 13, 5, 20], [1, 4, 4, 61, 5, 5], [1, 4, 4, 79, 5, 1], [1, 4, 2, 4, 5, 40], [1, 4, 4, 30, 5, 1], [1, 4, 4, 79, 5, 7], [1, 4, 4, 60, 5, 1], [1, 4, 4, 14, 5, 1], [1, 4, 4, 46, 5, 3], [1, 4, 4, 63, 5, 1], [1, 4, 3, 50, 5, 2], [1, 4, 4, 46, 5, 2], [1, 4, 4, 61, 5, 2], [1, 4, 4, 14, 5, 3], [1, 4, 4, 79, 5, 1], [1, 4, 4, 60, 5, 2], [1, 4, 4, 30, 5, 1], [1, 4, 4, 21, 5, 1], [1, 4, 4, 61, 5, 1], [1, 4, 4, 14, 5, 1], [1, 4, 4, 60, 5, 2], [1, 4, 2, 52, 5, 1], [1, 4, 4, 79, 5, 2], [1, 4, 4, 25, 5, 2], [1, 4, 1, 43, 5, 1], [1, 4, 2, 13, 5, 19], [1, 4, 4, 79, 5, 1], [1, 4, 4, 30, 5, 1], [1, 4, 3, 82, 5, 1], [1, 4, 2, 6, 5, 20], [1, 4, 2, 9, 5, 85], [1, 4, 4, 30, 5, 2], [1, 4, 4, 25, 5, 1], [1, 4, 1, 43, 5, 1], [1, 4, 2, 9, 5, 85], [1, 4, 4, 48, 5, 1], [1, 4, 4, 48, 5, 1], [1, 4, 4, 63, 5, 2], [1, 4, 4, 77, 5, 1], [1, 4, 1, 54, 5, 2], [1, 4, 1, 12, 5, 10], [1, 4, 4, 21, 5, 1], [1, 4, 4, 60, 5, 2], [1, 4, 4, 79, 5, 3], [1, 4, 4, 62, 5, 1], [1, 4, 4, 14, 5, 2], [1, 4, 4, 14, 5, 1], [1, 4, 4, 48, 5, 1], [1, 4, 4, 25, 6, 1], [1, 4, 4, 59, 6, 1], [1, 4, 2, 35, 6, 2], [1, 4, 4, 25, 6, 4], [1, 4, 4, 21, 6, 2], [1, 4, 4, 63, 6, 1], [1, 4, 4, 79, 6, 3], [1, 4, 2, 22, 6, 1], [1, 4, 4, 62, 6, 1], [1, 4, 4, 62, 6, 1], [1, 4, 4, 14, 6, 1], [1, 4, 4, 48, 6, 1], [1, 4, 4, 63, 6, 1], [1, 4, 4, 79, 6, 2], [1, 4, 4, 61, 6, 2], [1, 4, 4, 60, 6, 1], [1, 4, 4, 14, 6, 1], [1, 4, 4, 79, 6, 3], [1, 4, 4, 63, 6, 3], [1, 4, 4, 14, 6, 2], [1, 4, 4, 61, 6, 1], [1, 4, 1, 12, 6, 12], [1, 4, 2, 53, 6, 2], [1, 4, 2, 52, 6, 1], [1, 4, 2, 52, 6, 1], [1, 4, 2, 73, 6, 200], [1, 4, 2, 74, 6, 140], [1, 4, 2, 22, 6, 1], [1, 4, 1, 51, 6, 1], [1, 4, 1, 2, 6, 50], [1, 4, 1, 68, 6, 1], [1, 4, 4, 25, 6, 1], [1, 4, 4, 60, 6, 3], [1, 4, 4, 77, 6, 1], [1, 4, 4, 48, 6, 1], [1, 4, 4, 14, 6, 1], [1, 4, 4, 79, 6, 2], [1, 4, 4, 31, 6, 6], [1, 4, 4, 16, 6, 1], [1, 4, 4, 55, 6, 1], [1, 4, 4, 46, 6, 11], [1, 4, 4, 48, 6, 5], [1, 4, 4, 48, 6, 14], [1, 4, 4, 62, 6, 4], [1, 4, 4, 62, 6, 3], [1, 4, 4, 62, 6, 4], [1, 4, 4, 62, 6, 2], [1, 4, 2, 39, 6, 1], [1, 4, 4, 47, 6, 3], [1, 4, 4, 24, 6, 1], [1, 4, 4, 41, 6, 1], [1, 4, 4, 21, 6, 3], [1, 4, 4, 64, 6, 1], [1, 4, 3, 49, 6, 3], [1, 4, 4, 60, 6, 7], [1, 4, 4, 59, 6, 1], [1, 4, 4, 77, 6, 4], [1, 4, 4, 21, 6, 4], [1, 4, 4, 60, 6, 4], [1, 4, 4, 61, 6, 2], [1, 4, 4, 14, 6, 2], [1, 4, 4, 56, 6, 3], [1, 4, 4, 14, 9, 93], [1, 4, 4, 79, 9, 67], [1, 4, 4, 30, 9, 25], [1, 4, 4, 80, 9, 21], [1, 4, 4, 31, 9, 3], [1, 4, 4, 77, 9, 21], [1, 4, 4, 16, 9, 1], [1, 4, 4, 65, 9, 5], [1, 4, 4, 55, 9, 2], [1, 4, 4, 29, 9, 5], [1, 4, 4, 21, 9, 30], [1, 4, 4, 19, 9, 4], [1, 4, 4, 37, 9, 4], [1, 4, 4, 46, 9, 47], [1, 4, 4, 48, 9, 27], [1, 4, 4, 48, 9, 30], [1, 4, 4, 62, 9, 4], [1, 4, 4, 62, 9, 8], [1, 4, 4, 62, 9, 7], [1, 4, 4, 62, 9, 2], [1, 4, 4, 61, 9, 27], [1, 4, 4, 63, 9, 18], [1, 4, 4, 63, 9, 110], [1, 4, 2, 73, 9, 2500], [1, 4, 2, 74, 9, 4739], [1, 4, 4, 20, 9, 1], [1, 4, 4, 71, 9, 100], [1, 4, 4, 69, 9, 15], [1, 4, 4, 69, 9, 6], [1, 4, 4, 48, 9, 2], [1, 4, 2, 39, 9, 2], [1, 4, 4, 67, 9, 2], [1, 4, 4, 47, 9, 2], [1, 4, 4, 21, 9, 2], [1, 4, 4, 18, 9, 2], [1, 4, 1, 32, 9, 8], [1, 4, 1, 43, 9, 5], [1, 4, 1, 27, 9, 5], [1, 4, 1, 32, 9, 2], [1, 4, 1, 28, 9, 6], [1, 4, 1, 54, 9, 2], [1, 4, 1, 12, 9, 73], [1, 4, 1, 42, 9, 3], [1, 4, 0, 66, 9, 1], [1, 4, 1, 2, 9, 435], [1, 4, 1, 38, 9, 4], [1, 4, 1, 40, 9, 2], [1, 4, 2, 4, 9, 8599], [1, 4, 2, 6, 9, 5323], [1, 4, 2, 9, 9, 2654], [1, 4, 2, 13, 9, 220], [1, 4, 2, 23, 9, 1], [1, 4, 2, 23, 9, 1], [1, 4, 2, 23, 9, 2], [1, 4, 2, 23, 9, 2], [1, 4, 2, 23, 9, 1], [1, 4, 2, 23, 9, 16], [1, 4, 2, 23, 9, 13], [1, 4, 2, 10, 9, 4193], [1, 4, 2, 7, 9, 7635], [1, 4, 2, 5, 9, 11932], [1, 4, 3, 82, 9, 1], [1, 4, 0, 45, 9, 3], [1, 4, 1, 0, 9, 8], [1, 4, 4, 17, 9, 15], [1, 4, 2, 53, 9, 177], [1, 4, 2, 52, 9, 22], [1, 4, 0, 57, 9, 12], [1, 4, 0, 58, 9, 15], [1, 4, 2, 35, 9, 9], [1, 4, 1, 75, 9, 59], [1, 4, 0, 15, 9, 6], [1, 4, 4, 60, 9, 5], [1, 4, 4, 59, 9, 10], [1, 4, 2, 22, 9, 10], [1, 4, 1, 51, 9, 59], [1, 4, 1, 51, 9, 76], [1, 4, 4, 25, 9, 2], [1, 4, 4, 79, 9, 3]];
+const PROD_CAT=[1, 1, 1, 1, 2, 2, 2, 2, 1, 2, 2, 2, 1, 2, 4, 0, 4, 4, 4, 4, 4, 4, 2, 2, 4, 4, 4, 1, 1, 4, 4, 4, 1, 4, 1, 2, 1, 4, 1, 2, 1, 4, 1, 1, 1, 0, 4, 4, 4, 3, 3, 1, 2, 2, 1, 4, 4, 0, 0, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2, 2, 2, 1, 0, 4, 4, 4, 4, 1, 3, 0];
+const CANALS=['TIENDAS','TALLER'];
+const CAT_COLORS=['#6B82B0','#1DC9B0','#3D8BFF','#F09820','#28C87A'];
+const CAT_BADGE_BG=['rgba(107,130,176,.15)','rgba(29,201,176,.12)','rgba(61,139,255,.12)','rgba(240,152,32,.12)','rgba(40,200,122,.12)'];
+const CAT_BADGE_FG=['#8BA8E0','#4DDFC8','#6AABFF','#FFBF50','#60E8A8'];
+const STORE_COLORS=['#3D8BFF','#1DC9B0','#8B6BF0','#F09820','#F05878','#28C87A'];
+const STORE_LABELS=['Cerro Verde','Grieta','Sambil Ch.','Sambil Val','Taller','Tolón'];
+const CAT_SHORT=n=>n.replace('Artículos de ','').replace('Artículos ','').replace('Consumibles de Venta','Consumibles').replace('Útiles de Oficina','Oficina').replace('Equipos de Oficina','Equipos');
+const MONTH_SHORT={'Jan-25':'Ene 25','Feb-25':'Feb 25','Mar-25':'Mar 25','Jul-25':'Jul 25','Aug-25':'Ago 25','Sep-25':'Sep 25','Oct-25':'Oct 25','Nov-25':'Nov 25','Dec-25':'Dic 25','Jan-26':'Ene 26','Feb-26':'Feb 26','Mar-26':'Mar 26','Apr-26':'Abr 26','May-26':'May 26','Oct-26':'Oct 26'};
 
-const STORES = ["CERRO VERDE", "PLAZA", "GRIETA", "SAMBIL CHAC", "SAMBIL VAL", "TALLER", "TOLON"];
-const CATS   = ["Artículos Generales", "Artículos de Limpieza", "Consumibles de Venta", "Equipos de Oficina", "Sin Categoría", "Útiles de Oficina"];
-const PRODS  = ["Alcohol", "Baygon", "Bolsa de papelera", "Bolsas Blancas", "Bolsas Grandes (venta)", "Bolsas Grandes Navidad 2024", "Bolsas Medianas (venta)", "Bolsas Medianas Navidad 2024", "Bolsas Negras", "Bolsas Pequeñas (venta)", "Bolsas Pequeñas Navidad 2024", "Bolsas XS (venta)", "Bolsas de basura", "Bolsas de envío", "Bolígrafos", "Bombillos", "Borradores", "Café", "Cajas pequeñas", "Carpeta acordeón", "Carpetas", "Chinches", "Cinta Plástica", "Cinta Térmica", "Cinta de regalo", "Cinta doble faz", "Cinta métrica", "Clips", "Cloro", "Coleto", "Corrector", "Cuadernos", "Cutter", "Desinfectante", "Engrapadora", "Esencia difusor", "Esencia para bolsa", "Esponja de fregar", "Ganchos para carpeta", "Glade", "Grapas", "Guantes nitrilo", "Huellero", "Jabón de mano", "Jabón lava todo", "Limpidor de inodoro", "Linterna", "Lápiz", "Marcador pizarra", "Marcadores", "Mouse", "Mouse pad", "Papel Sanitario", "Papel máquina fiscal", "Papel punto de venta", "Paños amarillos", "Pega en barra", "Pega tanque", "Pilas AA", "Pilas AAA", "Pinza desbastar", "Piquetas", "Post-it", "Resaltador", "Resma de Hojas", "Sacagrapas", "Sacapuntas", "Sellador de piso", "Separadores", "Servilletas", "Silla de Oficina", "Sobre hoja carta", "Sobres amarillos", "Sobres para dinero", "Stickers Amarillos", "Stickers Regalo", "Stickers cierre de bolsas", "Tapabocas", "Teflón", "Tijera", "Tirro Papel", "Tirro para embalar", "Tiza", "Toallin", "Toner impresora", "Velcros"];
-const MONTHS = ["Jan-25", "Feb-25", "Mar-25", "Jul-25", "Aug-25", "Sep-25", "Oct-25", "Nov-25", "Dec-25", "Jan-26", "Feb-26", "Mar-26", "Apr-26", "May-26", "Oct-26"];
-const RECS   = [[0, 2, 0, 78, 5, 4], [0, 2, 0, 78, 6, 3], [0, 2, 0, 78, 12, 2], [0, 2, 1, 0, 5, 2], [0, 2, 1, 3, 7, 80], [0, 2, 1, 3, 8, 40], [0, 2, 1, 3, 9, 30], [0, 2, 1, 3, 11, 30], [0, 2, 1, 3, 12, 10], [0, 2, 1, 8, 5, 10], [0, 2, 1, 8, 6, 5], [0, 2, 1, 8, 7, 11], [0, 2, 1, 8, 8, 25], [0, 2, 1, 8, 11, 5], [0, 2, 1, 8, 12, 10], [0, 2, 1, 17, 11, 1], [0, 2, 1, 28, 4, 1], [0, 2, 1, 28, 5, 1], [0, 2, 1, 28, 7, 2], [0, 2, 1, 28, 8, 2], [0, 2, 1, 28, 9, 1], [0, 2, 1, 28, 11, 1], [0, 2, 1, 28, 12, 1], [0, 2, 1, 28, 13, 1], [0, 2, 1, 33, 5, 2], [0, 2, 1, 33, 6, 1], [0, 2, 1, 33, 7, 3], [0, 2, 1, 33, 8, 1], [0, 2, 1, 33, 9, 1], [0, 2, 1, 33, 11, 1], [0, 2, 1, 33, 13, 1], [0, 2, 1, 35, 11, 2], [0, 2, 1, 35, 13, 2], [0, 2, 1, 39, 5, 2], [0, 2, 1, 39, 6, 2], [0, 2, 1, 39, 7, 1], [0, 2, 1, 39, 8, 1], [0, 2, 1, 39, 10, 1], [0, 2, 1, 39, 11, 1], [0, 2, 1, 39, 12, 1], [0, 2, 1, 39, 13, 1], [0, 2, 1, 43, 5, 1], [0, 2, 1, 43, 11, 1], [0, 2, 1, 44, 5, 1], [0, 2, 1, 52, 4, 2], [0, 2, 1, 52, 5, 6], [0, 2, 1, 52, 6, 16], [0, 2, 1, 52, 7, 20], [0, 2, 1, 52, 8, 16], [0, 2, 1, 52, 9, 7], [0, 2, 1, 52, 10, 4], [0, 2, 1, 52, 11, 8], [0, 2, 1, 52, 12, 2], [0, 2, 1, 52, 13, 2], [0, 2, 1, 69, 5, 1], [0, 2, 1, 69, 6, 3], [0, 2, 1, 69, 7, 3], [0, 2, 1, 69, 8, 3], [0, 2, 1, 69, 9, 1], [0, 2, 1, 69, 10, 2], [0, 2, 1, 69, 11, 1], [0, 2, 1, 69, 13, 1], [0, 2, 2, 3, 11, 10], [0, 2, 2, 4, 5, 300], [0, 2, 2, 4, 6, 100], [0, 2, 2, 4, 7, 800], [0, 2, 2, 4, 8, 200], [0, 2, 2, 4, 11, 300], [0, 2, 2, 4, 12, 300], [0, 2, 2, 6, 4, 200], [0, 2, 2, 6, 5, 900], [0, 2, 2, 6, 6, 400], [0, 2, 2, 6, 7, 800], [0, 2, 2, 6, 8, 1000], [0, 2, 2, 6, 10, 300], [0, 2, 2, 6, 11, 400], [0, 2, 2, 6, 12, 100], [0, 2, 2, 6, 13, 200], [0, 2, 2, 9, 4, 300], [0, 2, 2, 9, 5, 900], [0, 2, 2, 9, 6, 600], [0, 2, 2, 9, 7, 900], [0, 2, 2, 9, 8, 1200], [0, 2, 2, 9, 9, 300], [0, 2, 2, 9, 10, 300], [0, 2, 2, 9, 13, 200], [0, 2, 2, 23, 4, 3], [0, 2, 2, 23, 5, 4], [0, 2, 2, 23, 6, 4], [0, 2, 2, 23, 7, 4], [0, 2, 2, 23, 8, 5], [0, 2, 2, 23, 10, 2], [0, 2, 2, 23, 11, 3], [0, 2, 2, 53, 5, 9], [0, 2, 2, 53, 7, 5], [0, 2, 2, 53, 8, 10], [0, 2, 2, 53, 9, 10], [0, 2, 2, 53, 10, 5], [0, 2, 2, 53, 11, 6], [0, 2, 2, 62, 11, 5], [0, 2, 2, 74, 5, 10], [0, 2, 2, 74, 6, 250], [0, 2, 2, 74, 7, 1100], [0, 2, 2, 74, 8, 200], [0, 2, 2, 74, 9, 800], [0, 2, 2, 75, 4, 100], [0, 2, 2, 75, 5, 1100], [0, 2, 2, 75, 6, 1469], [0, 2, 2, 75, 7, 1700], [0, 2, 2, 75, 8, 2300], [0, 2, 2, 75, 9, 1000], [0, 2, 2, 75, 10, 1000], [0, 2, 2, 75, 11, 1500], [0, 2, 2, 76, 5, 1260], [0, 2, 2, 76, 6, 1222], [0, 2, 2, 76, 7, 1600], [0, 2, 2, 76, 8, 1700], [0, 2, 2, 76, 9, 1000], [0, 2, 2, 76, 13, 500], [0, 2, 2, 85, 6, 100], [0, 2, 2, 85, 11, 50], [0, 2, 5, 14, 5, 6], [0, 2, 5, 14, 7, 1], [0, 2, 5, 14, 8, 10], [0, 2, 5, 14, 9, 5], [0, 2, 5, 14, 11, 5], [0, 2, 5, 17, 4, 1], [0, 2, 5, 17, 5, 4], [0, 2, 5, 17, 6, 2], [0, 2, 5, 17, 7, 2], [0, 2, 5, 17, 8, 3], [0, 2, 5, 17, 9, 2], [0, 2, 5, 17, 10, 2], [0, 2, 5, 17, 11, 3], [0, 2, 5, 17, 12, 9], [0, 2, 5, 17, 13, 2], [0, 2, 5, 22, 11, 4], [0, 2, 5, 27, 5, 1], [0, 2, 5, 27, 11, 1], [0, 2, 5, 60, 5, 2], [0, 2, 5, 60, 9, 1], [0, 2, 5, 62, 5, 5], [0, 2, 5, 62, 10, 5], [0, 2, 5, 64, 5, 2], [0, 2, 5, 64, 6, 1], [0, 2, 5, 64, 8, 2], [0, 2, 5, 64, 10, 1], [0, 2, 5, 64, 11, 1], [0, 2, 5, 64, 12, 1], [0, 2, 5, 73, 5, 100], [0, 2, 5, 73, 6, 50], [0, 2, 5, 73, 7, 50], [0, 2, 5, 73, 8, 100], [0, 2, 5, 73, 9, 50], [0, 2, 5, 73, 10, 50], [0, 2, 5, 73, 11, 50], [0, 2, 5, 73, 13, 50], [0, 2, 5, 84, 12, 1], [0, 4, 0, 22, 4, 2], [0, 4, 0, 22, 6, 2], [0, 4, 0, 22, 8, 2], [0, 4, 0, 22, 10, 2], [0, 4, 0, 78, 5, 3], [0, 4, 0, 78, 6, 6], [0, 4, 1, 0, 6, 2], [0, 4, 1, 0, 7, 1], [0, 4, 1, 3, 5, 30], [0, 4, 1, 3, 6, 70], [0, 4, 1, 3, 7, 85], [0, 4, 1, 3, 8, 25], [0, 4, 1, 3, 9, 15], [0, 4, 1, 3, 10, 10], [0, 4, 1, 8, 4, 15], [0, 4, 1, 8, 6, 5], [0, 4, 1, 8, 7, 30], [0, 4, 1, 8, 8, 10], [0, 4, 1, 8, 9, 15], [0, 4, 1, 8, 10, 8], [0, 4, 1, 28, 5, 1], [0, 4, 1, 28, 8, 1], [0, 4, 1, 28, 9, 1], [0, 4, 1, 29, 7, 1], [0, 4, 1, 33, 5, 1], [0, 4, 1, 33, 6, 2], [0, 4, 1, 33, 7, 1], [0, 4, 1, 33, 9, 1], [0, 4, 1, 39, 5, 1], [0, 4, 1, 39, 6, 1], [0, 4, 1, 39, 7, 1], [0, 4, 1, 39, 8, 1], [0, 4, 1, 39, 9, 1], [0, 4, 1, 43, 6, 1], [0, 4, 1, 52, 4, 3], [0, 4, 1, 52, 5, 6], [0, 4, 1, 52, 6, 6], [0, 4, 1, 52, 7, 7], [0, 4, 1, 52, 8, 9], [0, 4, 1, 52, 9, 8], [0, 4, 1, 52, 10, 7], [0, 4, 1, 55, 7, 2], [0, 4, 1, 55, 8, 2], [0, 4, 1, 69, 4, 1], [0, 4, 1, 69, 5, 3], [0, 4, 1, 69, 6, 3], [0, 4, 1, 69, 7, 3], [0, 4, 1, 69, 8, 3], [0, 4, 1, 69, 9, 4], [0, 4, 1, 69, 10, 3], [0, 4, 1, 83, 5, 1], [0, 4, 2, 4, 1, 100], [0, 4, 2, 4, 4, 50], [0, 4, 2, 4, 5, 100], [0, 4, 2, 4, 6, 350], [0, 4, 2, 4, 7, 500], [0, 4, 2, 4, 8, 450], [0, 4, 2, 4, 9, 50], [0, 4, 2, 4, 11, 200], [0, 4, 2, 4, 13, 400], [0, 4, 2, 6, 4, 200], [0, 4, 2, 6, 5, 600], [0, 4, 2, 6, 6, 450], [0, 4, 2, 6, 7, 600], [0, 4, 2, 6, 8, 1550], [0, 4, 2, 6, 9, 400], [0, 4, 2, 6, 10, 600], [0, 4, 2, 6, 11, 900], [0, 4, 2, 6, 12, 400], [0, 4, 2, 6, 13, 400], [0, 4, 2, 9, 4, 200], [0, 4, 2, 9, 5, 600], [0, 4, 2, 9, 6, 450], [0, 4, 2, 9, 7, 600], [0, 4, 2, 9, 8, 1900], [0, 4, 2, 9, 9, 500], [0, 4, 2, 9, 10, 400], [0, 4, 2, 11, 13, 200], [0, 4, 2, 14, 11, 4], [0, 4, 2, 17, 11, 2], [0, 4, 2, 17, 12, 2], [0, 4, 2, 17, 13, 2], [0, 4, 2, 23, 4, 2], [0, 4, 2, 23, 5, 4], [0, 4, 2, 23, 6, 3], [0, 4, 2, 23, 7, 2], [0, 4, 2, 23, 8, 6], [0, 4, 2, 23, 9, 2], [0, 4, 2, 23, 10, 2], [0, 4, 2, 23, 11, 4], [0, 4, 2, 24, 11, 3], [0, 4, 2, 24, 12, 2], [0, 4, 2, 28, 11, 1], [0, 4, 2, 28, 13, 1], [0, 4, 2, 29, 11, 1], [0, 4, 2, 33, 12, 1], [0, 4, 2, 35, 13, 2], [0, 4, 2, 39, 12, 1], [0, 4, 2, 39, 13, 1], [0, 4, 2, 48, 11, 2], [0, 4, 2, 52, 11, 4], [0, 4, 2, 53, 5, 17], [0, 4, 2, 53, 7, 15], [0, 4, 2, 53, 8, 6], [0, 4, 2, 53, 9, 12], [0, 4, 2, 53, 10, 6], [0, 4, 2, 55, 11, 2], [0, 4, 2, 56, 11, 2], [0, 4, 2, 59, 11, 2], [0, 4, 2, 59, 12, 1], [0, 4, 2, 62, 11, 5], [0, 4, 2, 62, 12, 1], [0, 4, 2, 64, 11, 1], [0, 4, 2, 66, 11, 1], [0, 4, 2, 69, 11, 2], [0, 4, 2, 69, 12, 1], [0, 4, 2, 71, 11, 20], [0, 4, 2, 73, 11, 100], [0, 4, 2, 74, 5, 350], [0, 4, 2, 74, 6, 600], [0, 4, 2, 74, 7, 1300], [0, 4, 2, 75, 5, 500], [0, 4, 2, 75, 6, 695], [0, 4, 2, 75, 7, 300], [0, 4, 2, 75, 8, 1200], [0, 4, 2, 75, 9, 200], [0, 4, 2, 75, 10, 400], [0, 4, 2, 75, 11, 600], [0, 4, 2, 76, 4, 250], [0, 4, 2, 76, 5, 578], [0, 4, 2, 76, 6, 1040], [0, 4, 2, 76, 7, 540], [0, 4, 2, 76, 8, 900], [0, 4, 2, 76, 9, 400], [0, 4, 2, 76, 10, 200], [0, 4, 2, 84, 11, 1], [0, 4, 5, 14, 6, 2], [0, 4, 5, 14, 7, 1], [0, 4, 5, 14, 8, 10], [0, 4, 5, 14, 10, 5], [0, 4, 5, 17, 4, 1], [0, 4, 5, 17, 5, 1], [0, 4, 5, 17, 6, 3], [0, 4, 5, 17, 7, 3], [0, 4, 5, 17, 8, 2], [0, 4, 5, 17, 9, 2], [0, 4, 5, 22, 7, 3], [0, 4, 5, 22, 8, 3], [0, 4, 5, 27, 5, 1], [0, 4, 5, 48, 11, 2], [0, 4, 5, 62, 4, 2], [0, 4, 5, 62, 5, 2], [0, 4, 5, 62, 7, 5], [0, 4, 5, 62, 10, 3], [0, 4, 5, 64, 5, 1], [0, 4, 5, 64, 6, 1], [0, 4, 5, 64, 7, 1], [0, 4, 5, 73, 5, 50], [0, 4, 5, 73, 6, 50], [0, 4, 5, 73, 8, 60], [0, 4, 5, 73, 10, 50], [0, 4, 5, 73, 14, 30], [0, 0, 0, 78, 6, 2], [0, 0, 1, 0, 6, 1], [0, 0, 1, 0, 8, 1], [0, 0, 1, 0, 12, 1], [0, 0, 1, 3, 5, 50], [0, 0, 1, 3, 7, 200], [0, 0, 1, 3, 8, 200], [0, 0, 1, 3, 11, 30], [0, 0, 1, 8, 2, 100], [0, 0, 1, 8, 8, 50], [0, 0, 1, 8, 12, 200], [0, 0, 1, 28, 0, 1], [0, 0, 1, 28, 2, 1], [0, 0, 1, 28, 6, 1], [0, 0, 1, 28, 8, 2], [0, 0, 1, 28, 12, 1], [0, 0, 1, 29, 4, 1], [0, 0, 1, 29, 7, 2], [0, 0, 1, 29, 11, 2], [0, 0, 1, 33, 0, 1], [0, 0, 1, 33, 1, 5], [0, 0, 1, 33, 6, 2], [0, 0, 1, 33, 7, 1], [0, 0, 1, 33, 8, 6], [0, 0, 1, 33, 9, 1], [0, 0, 1, 33, 10, 1], [0, 0, 1, 33, 12, 6], [0, 0, 1, 35, 13, 2], [0, 0, 1, 43, 8, 1], [0, 0, 1, 52, 0, 8], [0, 0, 1, 52, 2, 2], [0, 0, 1, 52, 4, 3], [0, 0, 1, 52, 6, 2], [0, 0, 1, 52, 7, 7], [0, 0, 1, 52, 8, 19], [0, 0, 1, 52, 10, 4], [0, 0, 1, 52, 11, 8], [0, 0, 1, 52, 12, 4], [0, 0, 1, 69, 1, 2], [0, 0, 1, 69, 2, 1], [0, 0, 1, 69, 6, 1], [0, 0, 1, 69, 8, 1], [0, 0, 1, 69, 10, 2], [0, 0, 1, 69, 11, 1], [0, 0, 1, 83, 6, 1], [0, 0, 2, 4, 0, 200], [0, 0, 2, 4, 1, 100], [0, 0, 2, 4, 4, 100], [0, 0, 2, 4, 5, 200], [0, 0, 2, 4, 6, 150], [0, 0, 2, 4, 7, 200], [0, 0, 2, 4, 8, 700], [0, 0, 2, 4, 10, 150], [0, 0, 2, 4, 11, 100], [0, 0, 2, 4, 12, 150], [0, 0, 2, 6, 0, 200], [0, 0, 2, 6, 1, 200], [0, 0, 2, 6, 4, 200], [0, 0, 2, 6, 5, 350], [0, 0, 2, 6, 6, 100], [0, 0, 2, 6, 7, 400], [0, 0, 2, 6, 8, 1200], [0, 0, 2, 6, 10, 200], [0, 0, 2, 6, 11, 400], [0, 0, 2, 6, 12, 600], [0, 0, 2, 9, 0, 300], [0, 0, 2, 9, 4, 200], [0, 0, 2, 9, 5, 400], [0, 0, 2, 9, 6, 400], [0, 0, 2, 9, 7, 600], [0, 0, 2, 9, 8, 1050], [0, 0, 2, 9, 10, 200], [0, 0, 2, 9, 12, 1050], [0, 0, 2, 23, 0, 2], [0, 0, 2, 23, 1, 3], [0, 0, 2, 23, 6, 3], [0, 0, 2, 23, 8, 5], [0, 0, 2, 23, 10, 5], [0, 0, 2, 23, 11, 4], [0, 0, 2, 23, 12, 3], [0, 0, 2, 53, 4, 10], [0, 0, 2, 53, 6, 5], [0, 0, 2, 53, 7, 15], [0, 0, 2, 53, 8, 30], [0, 0, 2, 53, 10, 5], [0, 0, 2, 53, 11, 15], [0, 0, 2, 53, 12, 10], [0, 0, 2, 74, 8, 200], [0, 0, 2, 75, 0, 700], [0, 0, 2, 75, 1, 1000], [0, 0, 2, 75, 4, 200], [0, 0, 2, 75, 5, 400], [0, 0, 2, 75, 6, 800], [0, 0, 2, 75, 7, 700], [0, 0, 2, 75, 8, 3400], [0, 0, 2, 75, 10, 1200], [0, 0, 2, 75, 11, 3000], [0, 0, 2, 75, 12, 500], [0, 0, 2, 76, 0, 300], [0, 0, 2, 76, 4, 200], [0, 0, 2, 76, 5, 340], [0, 0, 2, 76, 6, 540], [0, 0, 2, 76, 7, 400], [0, 0, 2, 76, 8, 3000], [0, 0, 2, 76, 10, 700], [0, 0, 5, 14, 0, 1], [0, 0, 5, 14, 11, 7], [0, 0, 5, 17, 0, 1], [0, 0, 5, 17, 1, 1], [0, 0, 5, 17, 2, 1], [0, 0, 5, 17, 5, 3], [0, 0, 5, 17, 6, 1], [0, 0, 5, 17, 7, 2], [0, 0, 5, 17, 8, 4], [0, 0, 5, 17, 10, 3], [0, 0, 5, 17, 11, 3], [0, 0, 5, 17, 12, 3], [0, 0, 5, 17, 13, 1], [0, 0, 5, 27, 11, 2], [0, 0, 5, 54, 4, 10], [0, 0, 5, 54, 6, 12], [0, 0, 5, 54, 8, 20], [0, 0, 5, 60, 11, 3], [0, 0, 5, 62, 8, 4], [0, 0, 5, 62, 11, 5], [0, 0, 5, 64, 5, 2], [0, 0, 5, 64, 7, 1], [0, 0, 5, 73, 5, 50], [0, 0, 5, 73, 6, 55], [0, 0, 5, 73, 8, 100], [0, 3, 1, 0, 9, 1], [0, 3, 1, 1, 10, 1], [0, 3, 1, 3, 5, 25], [0, 3, 1, 3, 6, 50], [0, 3, 1, 3, 7, 10], [0, 3, 1, 3, 8, 100], [0, 3, 1, 3, 9, 150], [0, 3, 1, 3, 10, 50], [0, 3, 1, 3, 11, 55], [0, 3, 1, 3, 12, 50], [0, 3, 1, 3, 13, 50], [0, 3, 1, 8, 5, 20], [0, 3, 1, 8, 9, 30], [0, 3, 1, 8, 12, 20], [0, 3, 1, 8, 13, 30], [0, 3, 1, 9, 12, 300], [0, 3, 1, 17, 11, 1], [0, 3, 1, 23, 12, 2], [0, 3, 1, 28, 4, 1], [0, 3, 1, 28, 5, 1], [0, 3, 1, 28, 6, 1], [0, 3, 1, 28, 7, 1], [0, 3, 1, 28, 8, 2], [0, 3, 1, 28, 9, 1], [0, 3, 1, 28, 10, 1], [0, 3, 1, 28, 11, 2], [0, 3, 1, 29, 6, 1], [0, 3, 1, 33, 4, 1], [0, 3, 1, 33, 5, 1], [0, 3, 1, 33, 6, 2], [0, 3, 1, 33, 7, 1], [0, 3, 1, 33, 8, 3], [0, 3, 1, 33, 9, 3], [0, 3, 1, 33, 10, 1], [0, 3, 1, 33, 11, 1], [0, 3, 1, 33, 13, 1], [0, 3, 1, 35, 6, 2], [0, 3, 1, 35, 13, 4], [0, 3, 1, 36, 5, 1], [0, 3, 1, 37, 10, 1], [0, 3, 1, 39, 4, 1], [0, 3, 1, 39, 5, 1], [0, 3, 1, 39, 6, 3], [0, 3, 1, 39, 7, 1], [0, 3, 1, 39, 8, 1], [0, 3, 1, 39, 9, 2], [0, 3, 1, 39, 10, 1], [0, 3, 1, 39, 11, 3], [0, 3, 1, 39, 12, 1], [0, 3, 1, 39, 13, 1], [0, 3, 1, 43, 5, 2], [0, 3, 1, 43, 7, 1], [0, 3, 1, 43, 11, 1], [0, 3, 1, 45, 10, 1], [0, 3, 1, 45, 11, 1], [0, 3, 1, 49, 12, 2], [0, 3, 1, 52, 4, 2], [0, 3, 1, 52, 5, 7], [0, 3, 1, 52, 6, 3], [0, 3, 1, 52, 7, 1], [0, 3, 1, 52, 8, 12], [0, 3, 1, 52, 9, 2], [0, 3, 1, 52, 11, 2], [0, 3, 1, 52, 12, 1], [0, 3, 1, 53, 11, 5], [0, 3, 1, 55, 5, 2], [0, 3, 1, 55, 8, 2], [0, 3, 1, 55, 10, 2], [0, 3, 1, 69, 4, 1], [0, 3, 1, 69, 5, 2], [0, 3, 1, 69, 6, 3], [0, 3, 1, 69, 7, 2], [0, 3, 1, 69, 8, 3], [0, 3, 1, 69, 9, 3], [0, 3, 1, 69, 10, 1], [0, 3, 1, 69, 11, 1], [0, 3, 1, 69, 12, 2], [0, 3, 1, 69, 13, 1], [0, 3, 1, 76, 12, 100], [0, 3, 1, 80, 12, 2], [0, 3, 1, 81, 12, 3], [0, 3, 2, 4, 4, 100], [0, 3, 2, 4, 5, 400], [0, 3, 2, 4, 6, 170], [0, 3, 2, 4, 7, 250], [0, 3, 2, 4, 8, 700], [0, 3, 2, 4, 9, 200], [0, 3, 2, 4, 10, 300], [0, 3, 2, 4, 11, 100], [0, 3, 2, 4, 12, 200], [0, 3, 2, 6, 4, 200], [0, 3, 2, 6, 5, 400], [0, 3, 2, 6, 6, 170], [0, 3, 2, 6, 7, 250], [0, 3, 2, 6, 8, 1300], [0, 3, 2, 6, 9, 200], [0, 3, 2, 6, 10, 300], [0, 3, 2, 6, 11, 500], [0, 3, 2, 6, 12, 500], [0, 3, 2, 6, 13, 200], [0, 3, 2, 8, 12, 20], [0, 3, 2, 9, 5, 700], [0, 3, 2, 9, 6, 270], [0, 3, 2, 9, 7, 200], [0, 3, 2, 9, 8, 1500], [0, 3, 2, 9, 9, 200], [0, 3, 2, 9, 10, 200], [0, 3, 2, 9, 12, 500], [0, 3, 2, 9, 13, 200], [0, 3, 2, 17, 12, 2], [0, 3, 2, 23, 4, 2], [0, 3, 2, 23, 5, 5], [0, 3, 2, 23, 6, 2], [0, 3, 2, 23, 7, 2], [0, 3, 2, 23, 8, 7], [0, 3, 2, 23, 9, 3], [0, 3, 2, 23, 11, 6], [0, 3, 2, 23, 13, 2], [0, 3, 2, 33, 11, 1], [0, 3, 2, 36, 11, 1], [0, 3, 2, 39, 12, 2], [0, 3, 2, 40, 12, 200], [0, 3, 2, 45, 12, 2], [0, 3, 2, 48, 12, 2], [0, 3, 2, 52, 12, 2], [0, 3, 2, 53, 5, 10], [0, 3, 2, 53, 6, 5], [0, 3, 2, 53, 8, 24], [0, 3, 2, 53, 9, 5], [0, 3, 2, 53, 10, 5], [0, 3, 2, 53, 11, 5], [0, 3, 2, 62, 11, 3], [0, 3, 2, 64, 12, 2], [0, 3, 2, 69, 12, 1], [0, 3, 2, 74, 6, 50], [0, 3, 2, 74, 7, 200], [0, 3, 2, 74, 8, 100], [0, 3, 2, 74, 9, 200], [0, 3, 2, 74, 10, 100], [0, 3, 2, 74, 11, 100], [0, 3, 2, 75, 4, 250], [0, 3, 2, 75, 5, 850], [0, 3, 2, 75, 6, 500], [0, 3, 2, 75, 7, 400], [0, 3, 2, 75, 8, 1700], [0, 3, 2, 75, 9, 450], [0, 3, 2, 75, 10, 700], [0, 3, 2, 75, 11, 303], [0, 3, 2, 76, 4, 250], [0, 3, 2, 76, 5, 550], [0, 3, 2, 76, 6, 211], [0, 3, 2, 76, 7, 200], [0, 3, 2, 76, 8, 1750], [0, 3, 2, 76, 9, 300], [0, 3, 2, 76, 11, 300], [0, 3, 2, 76, 13, 50], [0, 3, 4, 3, 7, 50], [0, 3, 4, 3, 11, 15], [0, 3, 4, 33, 10, 1], [0, 3, 4, 33, 11, 1], [0, 3, 4, 34, 10, 1], [0, 3, 4, 36, 7, 2], [0, 3, 4, 39, 10, 1], [0, 3, 4, 52, 10, 4], [0, 3, 4, 53, 10, 6], [0, 3, 4, 53, 11, 5], [0, 3, 4, 62, 10, 2], [0, 3, 4, 69, 11, 1], [0, 3, 4, 72, 7, 1], [0, 3, 4, 75, 10, 350], [0, 3, 4, 75, 11, 1000], [0, 3, 4, 81, 10, 3], [0, 3, 5, 0, 12, 1], [0, 3, 5, 3, 11, 1], [0, 3, 5, 14, 4, 1], [0, 3, 5, 14, 13, 1], [0, 3, 5, 17, 4, 1], [0, 3, 5, 17, 5, 2], [0, 3, 5, 17, 6, 3], [0, 3, 5, 17, 7, 2], [0, 3, 5, 17, 8, 4], [0, 3, 5, 17, 9, 3], [0, 3, 5, 17, 10, 1], [0, 3, 5, 17, 11, 1], [0, 3, 5, 17, 13, 1], [0, 3, 5, 27, 11, 1], [0, 3, 5, 33, 12, 1], [0, 3, 5, 47, 5, 3], [0, 3, 5, 47, 11, 1], [0, 3, 5, 62, 4, 2], [0, 3, 5, 62, 6, 4], [0, 3, 5, 62, 11, 4], [0, 3, 5, 64, 4, 1], [0, 3, 5, 64, 5, 2], [0, 3, 5, 64, 8, 2], [0, 3, 5, 64, 9, 1], [0, 3, 5, 64, 10, 1], [0, 3, 5, 64, 11, 1], [0, 3, 5, 64, 13, 1], [0, 3, 5, 73, 5, 110], [0, 3, 5, 73, 13, 30], [0, 3, 5, 81, 5, 3], [0, 3, 5, 81, 11, 3], [0, 1, 1, 3, 5, 30], [0, 1, 1, 3, 8, 50], [0, 1, 1, 3, 10, 50], [0, 1, 1, 3, 13, 20], [0, 1, 1, 35, 8, 2], [0, 1, 1, 35, 13, 2], [0, 1, 1, 55, 5, 1], [0, 1, 1, 55, 9, 2], [0, 1, 1, 55, 12, 2], [0, 1, 2, 4, 8, 150], [0, 1, 2, 4, 9, 100], [0, 1, 2, 4, 12, 50], [0, 1, 2, 6, 4, 40], [0, 1, 2, 6, 5, 50], [0, 1, 2, 6, 6, 50], [0, 1, 2, 6, 7, 50], [0, 1, 2, 6, 8, 50], [0, 1, 2, 6, 9, 100], [0, 1, 2, 9, 4, 40], [0, 1, 2, 9, 5, 50], [0, 1, 2, 9, 6, 50], [0, 1, 2, 9, 7, 50], [0, 1, 2, 9, 9, 100], [0, 1, 2, 9, 12, 40], [0, 1, 2, 18, 9, 50], [0, 1, 2, 23, 5, 1], [0, 1, 2, 23, 6, 2], [0, 1, 2, 23, 7, 2], [0, 1, 2, 23, 13, 5], [0, 1, 2, 53, 4, 5], [0, 1, 2, 53, 7, 5], [0, 1, 2, 53, 11, 5], [0, 1, 2, 53, 13, 10], [0, 1, 2, 75, 7, 70], [0, 1, 2, 75, 8, 100], [0, 1, 2, 75, 11, 100], [0, 1, 2, 75, 12, 40], [0, 1, 2, 76, 7, 60], [0, 1, 2, 76, 10, 50], [0, 1, 5, 60, 9, 3], [0, 1, 5, 62, 10, 50], [0, 1, 5, 70, 11, 1], [0, 1, 5, 73, 11, 5], [0, 1, 5, 73, 12, 7], [0, 1, 1, 0, 3, 1], [0, 1, 1, 0, 5, 2], [0, 1, 1, 0, 6, 3], [0, 1, 1, 0, 7, 1], [0, 1, 1, 0, 8, 1], [0, 1, 1, 0, 9, 1], [0, 1, 1, 0, 12, 1], [0, 1, 1, 1, 10, 1], [0, 1, 1, 3, 3, 10], [0, 1, 1, 3, 5, 135], [0, 1, 1, 3, 6, 120], [0, 1, 1, 3, 7, 375], [0, 1, 1, 3, 8, 415], [0, 1, 1, 3, 9, 195], [0, 1, 1, 3, 10, 110], [0, 1, 1, 3, 11, 115], [0, 1, 1, 3, 12, 60], [0, 1, 1, 3, 13, 70], [0, 1, 1, 8, 2, 100], [0, 1, 1, 8, 3, 20], [0, 1, 1, 8, 4, 15], [0, 1, 1, 8, 5, 30], [0, 1, 1, 8, 6, 10], [0, 1, 1, 8, 7, 41], [0, 1, 1, 8, 8, 85], [0, 1, 1, 8, 9, 45], [0, 1, 1, 8, 10, 8], [0, 1, 1, 8, 11, 5], [0, 1, 1, 8, 12, 230], [0, 1, 1, 8, 13, 30], [0, 1, 1, 9, 12, 300], [0, 1, 1, 17, 11, 1], [0, 1, 1, 23, 12, 2], [0, 1, 1, 28, 0, 1], [0, 1, 1, 28, 2, 1], [0, 1, 1, 28, 3, 2], [0, 1, 1, 28, 4, 2], [0, 1, 1, 28, 5, 3], [0, 1, 1, 28, 6, 2], [0, 1, 1, 28, 7, 3], [0, 1, 1, 28, 8, 7], [0, 1, 1, 28, 9, 3], [0, 1, 1, 28, 10, 1], [0, 1, 1, 28, 11, 3], [0, 1, 1, 28, 12, 2], [0, 1, 1, 29, 3, 1], [0, 1, 1, 29, 4, 1], [0, 1, 1, 29, 6, 1], [0, 1, 1, 29, 7, 3], [0, 1, 1, 29, 11, 2], [0, 1, 1, 33, 0, 1], [0, 1, 1, 33, 1, 5], [0, 1, 1, 33, 3, 3], [0, 1, 1, 33, 4, 1], [0, 1, 1, 33, 5, 4], [0, 1, 1, 33, 6, 7], [0, 1, 1, 33, 7, 6], [0, 1, 1, 33, 8, 10], [0, 1, 1, 33, 9, 6], [0, 1, 1, 33, 10, 2], [0, 1, 1, 33, 11, 2], [0, 1, 1, 33, 12, 6], [0, 1, 1, 33, 13, 1], [0, 1, 1, 35, 3, 1], [0, 1, 1, 35, 6, 2], [0, 1, 1, 35, 8, 2], [0, 1, 1, 35, 11, 2], [0, 1, 1, 36, 5, 1], [0, 1, 1, 37, 10, 1], [0, 1, 1, 39, 0, 2], [0, 1, 1, 39, 3, 1], [0, 1, 1, 39, 4, 1], [0, 1, 1, 39, 5, 4], [0, 1, 1, 39, 6, 7], [0, 1, 1, 39, 7, 3], [0, 1, 1, 39, 8, 3], [0, 1, 1, 39, 9, 3], [0, 1, 1, 39, 10, 2], [0, 1, 1, 39, 11, 4], [0, 1, 1, 39, 12, 4], [0, 1, 1, 39, 13, 1], [0, 1, 1, 43, 3, 3], [0, 1, 1, 43, 5, 3], [0, 1, 1, 43, 6, 1], [0, 1, 1, 43, 7, 1], [0, 1, 1, 43, 8, 1], [0, 1, 1, 43, 11, 2], [0, 1, 1, 45, 10, 1], [0, 1, 1, 45, 11, 1], [0, 1, 1, 49, 12, 2], [0, 1, 1, 52, 0, 8], [0, 1, 1, 52, 2, 2], [0, 1, 1, 52, 3, 8], [0, 1, 1, 52, 4, 10], [0, 1, 1, 52, 5, 19], [0, 1, 1, 52, 6, 27], [0, 1, 1, 52, 7, 35], [0, 1, 1, 52, 8, 56], [0, 1, 1, 52, 9, 17], [0, 1, 1, 52, 10, 15], [0, 1, 1, 52, 11, 18], [0, 1, 1, 52, 12, 7], [0, 1, 1, 53, 11, 5], [0, 1, 1, 55, 3, 2], [0, 1, 1, 55, 5, 3], [0, 1, 1, 55, 7, 2], [0, 1, 1, 55, 8, 4], [0, 1, 1, 55, 9, 2], [0, 1, 1, 55, 10, 2], [0, 1, 1, 55, 12, 2], [0, 1, 1, 69, 1, 2], [0, 1, 1, 69, 2, 1], [0, 1, 1, 69, 3, 1], [0, 1, 1, 69, 4, 2], [0, 1, 1, 69, 5, 6], [0, 1, 1, 69, 6, 10], [0, 1, 1, 69, 7, 8], [0, 1, 1, 69, 8, 10], [0, 1, 1, 69, 9, 8], [0, 1, 1, 69, 10, 8], [0, 1, 1, 69, 11, 3], [0, 1, 1, 69, 12, 2], [0, 1, 1, 69, 13, 1], [0, 1, 1, 76, 12, 100], [0, 1, 1, 80, 12, 2], [0, 1, 1, 81, 12, 3], [0, 1, 1, 83, 3, 1], [0, 1, 1, 83, 5, 1], [0, 1, 1, 83, 6, 1], [0, 1, 2, 4, 0, 200], [0, 1, 2, 4, 1, 200], [0, 1, 2, 4, 3, 150], [0, 1, 2, 4, 4, 250], [0, 1, 2, 4, 5, 1000], [0, 1, 2, 4, 6, 770], [0, 1, 2, 4, 7, 1750], [0, 1, 2, 4, 8, 2200], [0, 1, 2, 4, 9, 350], [0, 1, 2, 4, 10, 450], [0, 1, 2, 4, 11, 700], [0, 1, 2, 4, 12, 700], [0, 1, 2, 4, 13, 400], [0, 1, 2, 6, 0, 200], [0, 1, 2, 6, 1, 200], [0, 1, 2, 6, 3, 1080], [0, 1, 2, 6, 4, 840], [0, 1, 2, 6, 5, 2300], [0, 1, 2, 6, 6, 1170], [0, 1, 2, 6, 7, 2100], [0, 1, 2, 6, 8, 5100], [0, 1, 2, 6, 9, 700], [0, 1, 2, 6, 10, 1400], [0, 1, 2, 6, 11, 2200], [0, 1, 2, 6, 12, 1600], [0, 1, 2, 6, 13, 600], [0, 1, 2, 8, 12, 20], [0, 1, 2, 9, 0, 300], [0, 1, 2, 9, 3, 590], [0, 1, 2, 9, 4, 740], [0, 1, 2, 9, 5, 2650], [0, 1, 2, 9, 6, 1770], [0, 1, 2, 9, 7, 2350], [0, 1, 2, 9, 8, 5650], [0, 1, 2, 9, 9, 1100], [0, 1, 2, 9, 10, 1100], [0, 1, 2, 9, 12, 1590], [0, 1, 2, 9, 13, 200], [0, 1, 2, 11, 13, 200], [0, 1, 2, 14, 11, 4], [0, 1, 2, 17, 11, 2], [0, 1, 2, 17, 12, 4], [0, 1, 2, 18, 9, 50], [0, 1, 2, 23, 0, 2], [0, 1, 2, 23, 1, 3], [0, 1, 2, 23, 3, 10], [0, 1, 2, 23, 4, 7], [0, 1, 2, 23, 5, 14], [0, 1, 2, 23, 6, 14], [0, 1, 2, 23, 7, 10], [0, 1, 2, 23, 8, 23], [0, 1, 2, 23, 9, 5], [0, 1, 2, 23, 10, 9], [0, 1, 2, 23, 11, 17], [0, 1, 2, 23, 12, 3], [0, 1, 2, 23, 13, 7], [0, 1, 2, 24, 11, 3], [0, 1, 2, 24, 12, 2], [0, 1, 2, 28, 11, 1], [0, 1, 2, 29, 11, 1], [0, 1, 2, 33, 11, 1], [0, 1, 2, 33, 12, 1], [0, 1, 2, 36, 11, 1], [0, 1, 2, 39, 12, 3], [0, 1, 2, 40, 12, 200], [0, 1, 2, 45, 12, 2], [0, 1, 2, 48, 11, 2], [0, 1, 2, 48, 12, 2], [0, 1, 2, 52, 11, 4], [0, 1, 2, 52, 12, 2], [0, 1, 2, 53, 3, 6], [0, 1, 2, 53, 4, 15], [0, 1, 2, 53, 5, 36], [0, 1, 2, 53, 6, 10], [0, 1, 2, 53, 7, 40], [0, 1, 2, 53, 8, 70], [0, 1, 2, 53, 9, 27], [0, 1, 2, 53, 10, 21], [0, 1, 2, 53, 11, 31], [0, 1, 2, 53, 12, 10], [0, 1, 2, 53, 13, 10], [0, 1, 2, 55, 11, 2], [0, 1, 2, 56, 11, 2], [0, 1, 2, 59, 11, 2], [0, 1, 2, 59, 12, 1], [0, 1, 2, 62, 11, 8], [0, 1, 2, 62, 12, 1], [0, 1, 2, 64, 11, 1], [0, 1, 2, 64, 12, 2], [0, 1, 2, 66, 11, 1], [0, 1, 2, 69, 11, 2], [0, 1, 2, 69, 12, 2], [0, 1, 2, 71, 11, 20], [0, 1, 2, 73, 11, 100], [0, 1, 2, 74, 3, 500], [0, 1, 2, 74, 5, 360], [0, 1, 2, 74, 6, 900], [0, 1, 2, 74, 7, 2600], [0, 1, 2, 74, 8, 500], [0, 1, 2, 74, 9, 1000], [0, 1, 2, 74, 10, 100], [0, 1, 2, 74, 11, 100], [0, 1, 2, 75, 0, 700], [0, 1, 2, 75, 1, 1000], [0, 1, 2, 75, 3, 900], [0, 1, 2, 75, 4, 1050], [0, 1, 2, 75, 5, 2850], [0, 1, 2, 75, 6, 3464], [0, 1, 2, 75, 7, 3170], [0, 1, 2, 75, 8, 8700], [0, 1, 2, 75, 9, 1650], [0, 1, 2, 75, 10, 3300], [0, 1, 2, 75, 11, 5503], [0, 1, 2, 75, 12, 540], [0, 1, 2, 76, 0, 300], [0, 1, 2, 76, 3, 550], [0, 1, 2, 76, 4, 900], [0, 1, 2, 76, 5, 2728], [0, 1, 2, 76, 6, 3013], [0, 1, 2, 76, 7, 2800], [0, 1, 2, 76, 8, 7350], [0, 1, 2, 76, 9, 1700], [0, 1, 2, 76, 10, 950], [0, 1, 2, 76, 11, 300], [0, 1, 2, 76, 13, 50], [0, 1, 2, 84, 11, 1], [0, 1, 2, 85, 6, 100], [0, 1, 2, 85, 11, 50], [0, 1, 4, 3, 7, 50], [0, 1, 4, 3, 11, 15], [0, 1, 4, 33, 10, 1], [0, 1, 4, 33, 11, 1], [0, 1, 4, 34, 10, 1], [0, 1, 4, 36, 7, 2], [0, 1, 4, 39, 10, 1], [0, 1, 4, 52, 10, 4], [0, 1, 4, 53, 10, 6], [0, 1, 4, 53, 11, 5], [0, 1, 4, 62, 10, 2], [0, 1, 4, 69, 11, 1], [0, 1, 4, 72, 7, 1], [0, 1, 4, 75, 10, 350], [0, 1, 4, 75, 11, 1000], [0, 1, 4, 81, 10, 3], [0, 1, 5, 0, 12, 1], [0, 1, 5, 3, 11, 1], [0, 1, 5, 14, 0, 1], [0, 1, 5, 14, 3, 1], [0, 1, 5, 14, 4, 1], [0, 1, 5, 14, 5, 6], [0, 1, 5, 14, 6, 2], [0, 1, 5, 14, 7, 2], [0, 1, 5, 14, 8, 20], [0, 1, 5, 14, 9, 5], [0, 1, 5, 14, 10, 5], [0, 1, 5, 14, 11, 12], [0, 1, 5, 14, 13, 1], [0, 1, 5, 17, 0, 1], [0, 1, 5, 17, 1, 1], [0, 1, 5, 17, 2, 1], [0, 1, 5, 17, 3, 3], [0, 1, 5, 17, 4, 3], [0, 1, 5, 17, 5, 10], [0, 1, 5, 17, 6, 9], [0, 1, 5, 17, 7, 9], [0, 1, 5, 17, 8, 13], [0, 1, 5, 17, 9, 7], [0, 1, 5, 17, 10, 6], [0, 1, 5, 17, 11, 7], [0, 1, 5, 17, 12, 8], [0, 1, 5, 17, 13, 2], [0, 1, 5, 27, 3, 1], [0, 1, 5, 27, 5, 2], [0, 1, 5, 27, 11, 4], [0, 1, 5, 33, 12, 1], [0, 1, 5, 47, 5, 3], [0, 1, 5, 47, 11, 1], [0, 1, 5, 48, 11, 2], [0, 1, 5, 60, 5, 2], [0, 1, 5, 60, 9, 4], [0, 1, 5, 60, 11, 3], [0, 1, 5, 62, 3, 3], [0, 1, 5, 62, 4, 4], [0, 1, 5, 62, 5, 7], [0, 1, 5, 62, 6, 4], [0, 1, 5, 62, 7, 5], [0, 1, 5, 62, 8, 4], [0, 1, 5, 62, 10, 58], [0, 1, 5, 62, 11, 9], [0, 1, 5, 64, 3, 1], [0, 1, 5, 64, 4, 1], [0, 1, 5, 64, 5, 7], [0, 1, 5, 64, 6, 2], [0, 1, 5, 64, 7, 2], [0, 1, 5, 64, 8, 4], [0, 1, 5, 64, 9, 1], [0, 1, 5, 64, 10, 2], [0, 1, 5, 64, 11, 2], [0, 1, 5, 64, 12, 1], [0, 1, 5, 64, 13, 1], [0, 1, 5, 70, 4, 1], [0, 1, 5, 70, 11, 1], [0, 1, 5, 73, 3, 50], [0, 1, 5, 73, 5, 310], [0, 1, 5, 73, 6, 155], [0, 1, 5, 73, 7, 50], [0, 1, 5, 73, 8, 260], [0, 1, 5, 73, 9, 50], [0, 1, 5, 73, 10, 100], [0, 1, 5, 73, 11, 55], [0, 1, 5, 73, 12, 7], [0, 1, 5, 73, 13, 30], [0, 1, 5, 73, 14, 30], [0, 1, 5, 81, 5, 3], [0, 1, 5, 81, 11, 3], [0, 6, 4, 3, 13, 100], [0, 6, 4, 4, 13, 200], [0, 6, 4, 6, 13, 200], [0, 6, 4, 8, 13, 100], [0, 6, 4, 9, 13, 300], [0, 6, 4, 17, 13, 1], [0, 6, 4, 28, 13, 1], [0, 6, 4, 32, 13, 1], [0, 6, 4, 33, 13, 1], [0, 6, 4, 36, 13, 2], [0, 6, 4, 69, 13, 1], [0, 6, 4, 73, 13, 50], [0, 6, 4, 74, 13, 200], [0, 6, 4, 75, 13, 500], [0, 6, 4, 79, 13, 1], [0, 6, 4, 81, 13, 3], [1, 5, 2, 9, 5, 10], [1, 5, 2, 6, 5, 5], [1, 5, 2, 4, 5, 5], [1, 5, 5, 65, 5, 1], [1, 5, 5, 19, 5, 1], [1, 5, 5, 19, 5, 1], [1, 5, 5, 19, 5, 1], [1, 5, 1, 2, 5, 375], [1, 5, 5, 81, 5, 1], [1, 5, 5, 81, 5, 1], [1, 5, 5, 32, 5, 1], [1, 5, 5, 81, 5, 3], [1, 5, 5, 49, 5, 1], [1, 5, 5, 14, 5, 1], [1, 5, 5, 81, 5, 1], [1, 5, 2, 9, 5, 10], [1, 5, 2, 6, 5, 10], [1, 5, 2, 4, 5, 10], [1, 5, 5, 49, 5, 1], [1, 5, 5, 14, 5, 1], [1, 5, 0, 52, 5, 5], [1, 5, 0, 52, 5, 1], [1, 5, 0, 17, 5, 1], [1, 5, 5, 64, 5, 3], [1, 5, 5, 27, 5, 1], [1, 5, 5, 73, 5, 100], [1, 5, 5, 81, 5, 2], [1, 5, 2, 13, 5, 15], [1, 5, 5, 71, 5, 31], [1, 5, 0, 52, 5, 3], [1, 5, 0, 52, 5, 1], [1, 5, 0, 0, 5, 1], [1, 5, 1, 43, 5, 1], [1, 5, 0, 17, 5, 5], [1, 5, 5, 49, 5, 2], [1, 5, 5, 81, 5, 2], [1, 5, 3, 84, 5, 1], [1, 5, 5, 62, 5, 2], [1, 5, 5, 79, 5, 4], [1, 5, 0, 61, 5, 5], [1, 5, 1, 33, 5, 1], [1, 5, 2, 13, 5, 10], [1, 5, 5, 81, 5, 2], [1, 5, 5, 81, 5, 1], [1, 5, 5, 81, 5, 1], [1, 5, 5, 14, 5, 5], [1, 5, 5, 47, 5, 10], [1, 5, 5, 49, 5, 3], [1, 5, 5, 63, 5, 2], [1, 5, 5, 63, 5, 2], [1, 5, 2, 59, 5, 2], [1, 5, 5, 64, 5, 1], [1, 5, 0, 52, 5, 2], [1, 5, 5, 81, 5, 2], [1, 5, 0, 26, 5, 6], [1, 5, 0, 61, 5, 2], [1, 5, 5, 47, 5, 3], [1, 5, 5, 73, 5, 50], [1, 5, 5, 47, 5, 1], [1, 5, 5, 49, 5, 1], [1, 5, 5, 49, 5, 1], [1, 5, 5, 47, 5, 1], [1, 5, 5, 73, 5, 10], [1, 5, 5, 49, 5, 1], [1, 5, 5, 81, 5, 1], [1, 5, 1, 2, 5, 25], [1, 5, 5, 22, 5, 1], [1, 5, 5, 22, 5, 1], [1, 5, 2, 6, 5, 200], [1, 5, 2, 9, 5, 200], [1, 5, 5, 76, 5, 140], [1, 5, 5, 75, 5, 200], [1, 5, 1, 69, 5, 1], [1, 5, 0, 23, 5, 1], [1, 5, 1, 44, 5, 1], [1, 5, 1, 28, 5, 1], [1, 5, 1, 33, 5, 1], [1, 5, 0, 52, 5, 4], [1, 5, 0, 52, 5, 2], [1, 5, 1, 2, 5, 25], [1, 5, 5, 81, 5, 2], [1, 5, 5, 64, 5, 1], [1, 5, 5, 32, 5, 3], [1, 5, 5, 14, 5, 3], [1, 5, 5, 49, 5, 1], [1, 5, 5, 49, 5, 2], [1, 5, 2, 58, 5, 1], [1, 5, 5, 22, 5, 1], [1, 5, 1, 29, 5, 1], [1, 5, 1, 55, 5, 2], [1, 5, 1, 12, 5, 24], [1, 5, 1, 2, 5, 25], [1, 5, 0, 17, 5, 3], [1, 5, 0, 52, 5, 1], [1, 5, 0, 52, 5, 2], [1, 5, 1, 39, 5, 1], [1, 5, 5, 63, 5, 1], [1, 5, 5, 81, 5, 1], [1, 5, 5, 81, 5, 2], [1, 5, 2, 6, 5, 30], [1, 5, 2, 9, 5, 30], [1, 5, 1, 2, 5, 25], [1, 5, 1, 69, 5, 1], [1, 5, 2, 58, 5, 1], [1, 5, 2, 59, 5, 1], [1, 5, 5, 64, 5, 1], [1, 5, 5, 14, 5, 2], [1, 5, 5, 81, 5, 2], [1, 5, 5, 62, 5, 2], [1, 5, 5, 31, 5, 1], [1, 5, 5, 14, 5, 1], [1, 5, 5, 64, 5, 1], [1, 5, 2, 6, 5, 20], [1, 5, 2, 9, 5, 10], [1, 5, 0, 52, 5, 1], [1, 5, 1, 2, 5, 25], [1, 5, 2, 9, 5, 10], [1, 5, 3, 84, 5, 1], [1, 5, 1, 12, 5, 10], [1, 5, 5, 22, 5, 1], [1, 5, 1, 2, 5, 50], [1, 5, 0, 0, 5, 1], [1, 5, 1, 2, 5, 10], [1, 5, 1, 12, 5, 2], [1, 5, 1, 29, 5, 1], [1, 5, 1, 33, 5, 1], [1, 5, 5, 79, 5, 2], [1, 5, 0, 61, 5, 2], [1, 5, 1, 55, 5, 1], [1, 5, 5, 63, 5, 1], [1, 5, 5, 22, 5, 1], [1, 5, 5, 47, 5, 3], [1, 5, 5, 49, 5, 4], [1, 5, 5, 64, 5, 1], [1, 5, 2, 9, 5, 20], [1, 5, 2, 6, 5, 20], [1, 5, 5, 81, 5, 11], [1, 5, 0, 52, 5, 4], [1, 5, 1, 2, 5, 50], [1, 5, 1, 33, 5, 1], [1, 5, 1, 28, 5, 1], [1, 5, 0, 17, 5, 5], [1, 5, 1, 43, 5, 1], [1, 5, 1, 12, 5, 25], [1, 5, 1, 2, 5, 25], [1, 5, 1, 55, 5, 3], [1, 5, 0, 52, 5, 4], [1, 5, 1, 28, 5, 1], [1, 5, 0, 52, 5, 1], [1, 5, 1, 39, 5, 1], [1, 5, 0, 60, 5, 7], [1, 5, 2, 59, 5, 2], [1, 5, 2, 58, 5, 1], [1, 5, 3, 50, 5, 1], [1, 5, 5, 64, 5, 3], [1, 5, 1, 28, 5, 1], [1, 5, 1, 33, 5, 1], [1, 5, 0, 52, 5, 4], [1, 5, 0, 52, 5, 1], [1, 5, 5, 14, 5, 5], [1, 5, 2, 9, 5, 40], [1, 5, 2, 9, 5, 32], [1, 5, 3, 84, 5, 1], [1, 5, 0, 26, 5, 1], [1, 5, 5, 22, 5, 2], [1, 5, 5, 66, 5, 1], [1, 5, 5, 22, 5, 1], [1, 5, 5, 14, 5, 2], [1, 5, 2, 4, 5, 150], [1, 5, 2, 6, 5, 520], [1, 5, 2, 9, 5, 740], [1, 5, 2, 24, 5, 1], [1, 5, 2, 24, 5, 1], [1, 5, 2, 24, 5, 1], [1, 5, 2, 24, 5, 1], [1, 5, 5, 81, 5, 2], [1, 5, 5, 76, 5, 700], [1, 5, 2, 9, 5, 220], [1, 5, 5, 32, 5, 1], [1, 5, 5, 22, 5, 1], [1, 5, 5, 81, 5, 2], [1, 5, 5, 22, 5, 2], [1, 5, 5, 47, 5, 1], [1, 5, 5, 81, 5, 1], [1, 5, 5, 14, 6, 1], [1, 5, 5, 49, 6, 1], [1, 5, 5, 63, 6, 1], [1, 5, 5, 22, 6, 1], [1, 5, 0, 52, 6, 2], [1, 5, 0, 52, 6, 8], [1, 5, 1, 2, 6, 25], [1, 5, 1, 28, 6, 2], [1, 5, 5, 34, 6, 3], [1, 5, 5, 62, 6, 2], [1, 5, 5, 64, 6, 1], [1, 5, 5, 47, 6, 2], [1, 5, 5, 81, 6, 1], [1, 5, 5, 81, 6, 11], [1, 5, 2, 9, 6, 10], [1, 5, 2, 6, 6, 10], [1, 5, 5, 64, 6, 1], [1, 5, 2, 58, 6, 1], [1, 5, 0, 61, 6, 1], [1, 5, 1, 28, 6, 2], [1, 5, 1, 33, 6, 4], [1, 5, 0, 52, 6, 7], [1, 5, 1, 2, 6, 100], [1, 5, 1, 43, 6, 1], [1, 5, 1, 44, 6, 1], [1, 5, 5, 81, 6, 2], [1, 5, 1, 12, 6, 10], [1, 5, 5, 49, 6, 1], [1, 5, 5, 81, 6, 2], [1, 5, 5, 47, 6, 1], [1, 5, 0, 17, 6, 10], [1, 5, 5, 81, 6, 1], [1, 5, 5, 14, 6, 2], [1, 5, 5, 47, 6, 5], [1, 5, 5, 31, 6, 1], [1, 5, 5, 22, 6, 2], [1, 5, 5, 62, 6, 1], [1, 5, 5, 79, 6, 2], [1, 5, 0, 26, 6, 2], [1, 5, 5, 22, 6, 2], [1, 5, 5, 14, 6, 5], [1, 5, 5, 47, 6, 1], [1, 5, 5, 31, 6, 1], [1, 5, 5, 14, 6, 1], [1, 5, 5, 81, 6, 4], [1, 5, 0, 0, 6, 1], [1, 5, 5, 14, 6, 2], [1, 5, 2, 9, 6, 50], [1, 5, 2, 6, 6, 50], [1, 5, 0, 17, 6, 2], [1, 5, 5, 75, 6, 200], [1, 5, 5, 76, 6, 140], [1, 5, 1, 2, 6, 5], [1, 5, 5, 82, 6, 2], [1, 5, 5, 82, 6, 14], [1, 5, 5, 14, 6, 1], [1, 5, 5, 47, 6, 3], [1, 5, 5, 31, 6, 1], [1, 5, 5, 49, 6, 3], [1, 5, 5, 22, 6, 1], [1, 5, 0, 61, 6, 1], [1, 5, 5, 21, 6, 1], [1, 5, 5, 81, 6, 1], [1, 5, 3, 50, 6, 1], [1, 5, 2, 58, 6, 1], [1, 5, 2, 9, 6, 40], [1, 5, 1, 12, 6, 24], [1, 5, 5, 64, 6, 1], [1, 5, 0, 17, 6, 5], [1, 5, 5, 14, 6, 2], [1, 5, 5, 22, 6, 3], [1, 5, 5, 81, 6, 1], [1, 5, 5, 19, 6, 1], [1, 5, 5, 31, 6, 3], [1, 5, 5, 81, 6, 18], [1, 5, 2, 13, 6, 30], [1, 5, 2, 9, 6, 30], [1, 5, 2, 6, 6, 30], [1, 5, 2, 4, 6, 10], [1, 5, 5, 20, 6, 1], [1, 5, 5, 62, 6, 2], [1, 5, 5, 49, 6, 1], [1, 5, 5, 30, 6, 1], [1, 5, 5, 22, 6, 1], [1, 5, 5, 31, 6, 1], [1, 5, 2, 13, 6, 20], [1, 5, 5, 62, 6, 5], [1, 5, 5, 81, 6, 1], [1, 5, 2, 4, 6, 40], [1, 5, 5, 31, 6, 1], [1, 5, 5, 81, 6, 7], [1, 5, 0, 61, 6, 1], [1, 5, 5, 14, 6, 1], [1, 5, 5, 47, 6, 3], [1, 5, 5, 64, 6, 1], [1, 5, 3, 51, 6, 2], [1, 5, 5, 47, 6, 2], [1, 5, 5, 62, 6, 2], [1, 5, 5, 14, 6, 3], [1, 5, 5, 81, 6, 1], [1, 5, 0, 61, 6, 2], [1, 5, 5, 31, 6, 1], [1, 5, 5, 22, 6, 1], [1, 5, 5, 62, 6, 1], [1, 5, 5, 14, 6, 1], [1, 5, 0, 61, 6, 2], [1, 5, 0, 53, 6, 1], [1, 5, 5, 81, 6, 2], [1, 5, 0, 26, 6, 2], [1, 5, 1, 44, 6, 1], [1, 5, 2, 13, 6, 19], [1, 5, 5, 81, 6, 1], [1, 5, 5, 31, 6, 1], [1, 5, 3, 84, 6, 1], [1, 5, 2, 6, 6, 20], [1, 5, 2, 9, 6, 85], [1, 5, 5, 31, 6, 2], [1, 5, 0, 26, 6, 1], [1, 5, 1, 44, 6, 1], [1, 5, 2, 9, 6, 85], [1, 5, 5, 49, 6, 1], [1, 5, 5, 49, 6, 1], [1, 5, 5, 64, 6, 2], [1, 5, 5, 79, 6, 1], [1, 5, 1, 55, 6, 2], [1, 5, 1, 12, 6, 10], [1, 5, 5, 22, 6, 1], [1, 5, 0, 61, 6, 2], [1, 5, 5, 81, 6, 3], [1, 5, 5, 63, 6, 1], [1, 5, 5, 14, 6, 2], [1, 5, 5, 14, 6, 1], [1, 5, 5, 49, 6, 1], [1, 5, 0, 26, 7, 1], [1, 5, 0, 60, 7, 1], [1, 5, 0, 36, 7, 2], [1, 5, 0, 26, 7, 4], [1, 5, 5, 22, 7, 2], [1, 5, 5, 64, 7, 1], [1, 5, 5, 81, 7, 3], [1, 5, 0, 23, 7, 1], [1, 5, 5, 63, 7, 1], [1, 5, 5, 63, 7, 1], [1, 5, 5, 14, 7, 1], [1, 5, 5, 49, 7, 1], [1, 5, 5, 64, 7, 1], [1, 5, 5, 81, 7, 2], [1, 5, 5, 62, 7, 2], [1, 5, 0, 61, 7, 1], [1, 5, 5, 14, 7, 1], [1, 5, 5, 81, 7, 3], [1, 5, 5, 64, 7, 3], [1, 5, 5, 14, 7, 2], [1, 5, 5, 62, 7, 1], [1, 5, 1, 12, 7, 12], [1, 5, 0, 54, 7, 2], [1, 5, 0, 53, 7, 1], [1, 5, 0, 53, 7, 1], [1, 5, 5, 75, 7, 200], [1, 5, 5, 76, 7, 140], [1, 5, 0, 23, 7, 1], [1, 5, 0, 52, 7, 1], [1, 5, 1, 2, 7, 50], [1, 5, 1, 69, 7, 1], [1, 5, 0, 26, 7, 1], [1, 5, 0, 61, 7, 3], [1, 5, 5, 79, 7, 1], [1, 5, 5, 49, 7, 1], [1, 5, 5, 14, 7, 1], [1, 5, 5, 81, 7, 2], [1, 5, 5, 32, 7, 6], [1, 5, 5, 16, 7, 1], [1, 5, 5, 56, 7, 1], [1, 5, 5, 47, 7, 11], [1, 5, 5, 49, 7, 5], [1, 5, 5, 49, 7, 14], [1, 5, 5, 63, 7, 4], [1, 5, 5, 63, 7, 3], [1, 5, 5, 63, 7, 4], [1, 5, 5, 63, 7, 2], [1, 5, 5, 40, 7, 1], [1, 5, 5, 48, 7, 3], [1, 5, 5, 25, 7, 1], [1, 5, 5, 42, 7, 1], [1, 5, 5, 22, 7, 3], [1, 5, 5, 65, 7, 1], [1, 5, 3, 50, 7, 3], [1, 5, 0, 61, 7, 7], [1, 5, 0, 60, 7, 1], [1, 5, 5, 79, 7, 4], [1, 5, 5, 22, 7, 4], [1, 5, 0, 61, 7, 4], [1, 5, 5, 62, 7, 2], [1, 5, 5, 14, 7, 2], [1, 5, 0, 57, 7, 3], [1, 5, 5, 14, 10, 93], [1, 5, 5, 81, 10, 67], [1, 5, 5, 31, 10, 25], [1, 5, 5, 82, 10, 21], [1, 5, 5, 32, 10, 3], [1, 5, 5, 79, 10, 21], [1, 5, 5, 16, 10, 1], [1, 5, 5, 66, 10, 5], [1, 5, 5, 56, 10, 2], [1, 5, 5, 30, 10, 5], [1, 5, 5, 22, 10, 30], [1, 5, 5, 20, 10, 4], [1, 5, 5, 38, 10, 4], [1, 5, 5, 47, 10, 47], [1, 5, 5, 49, 10, 27], [1, 5, 5, 49, 10, 30], [1, 5, 5, 63, 10, 4], [1, 5, 5, 63, 10, 8], [1, 5, 5, 63, 10, 7], [1, 5, 5, 63, 10, 2], [1, 5, 5, 62, 10, 27], [1, 5, 5, 64, 10, 18], [1, 5, 5, 64, 10, 110], [1, 5, 5, 75, 10, 2500], [1, 5, 5, 76, 10, 4739], [1, 5, 5, 21, 10, 1], [1, 5, 5, 73, 10, 100], [1, 5, 5, 71, 10, 15], [1, 5, 5, 71, 10, 6], [1, 5, 5, 49, 10, 2], [1, 5, 5, 40, 10, 2], [1, 5, 5, 68, 10, 2], [1, 5, 5, 48, 10, 2], [1, 5, 5, 22, 10, 2], [1, 5, 5, 19, 10, 2], [1, 5, 1, 33, 10, 8], [1, 5, 1, 44, 10, 5], [1, 5, 1, 28, 10, 5], [1, 5, 1, 33, 10, 2], [1, 5, 1, 29, 10, 6], [1, 5, 1, 55, 10, 2], [1, 5, 1, 12, 10, 73], [1, 5, 1, 43, 10, 3], [1, 5, 1, 67, 10, 1], [1, 5, 1, 2, 10, 435], [1, 5, 1, 39, 10, 4], [1, 5, 1, 41, 10, 2], [1, 5, 2, 4, 10, 8599], [1, 5, 2, 6, 10, 5323], [1, 5, 2, 9, 10, 2654], [1, 5, 2, 13, 10, 220], [1, 5, 2, 24, 10, 1], [1, 5, 2, 24, 10, 1], [1, 5, 2, 24, 10, 2], [1, 5, 2, 24, 10, 2], [1, 5, 2, 24, 10, 1], [1, 5, 2, 24, 10, 16], [1, 5, 2, 24, 10, 13], [1, 5, 2, 10, 10, 4193], [1, 5, 2, 7, 10, 7635], [1, 5, 2, 5, 10, 11932], [1, 5, 3, 84, 10, 1], [1, 5, 3, 46, 10, 3], [1, 5, 0, 0, 10, 8], [1, 5, 0, 17, 10, 15], [1, 5, 0, 54, 10, 177], [1, 5, 0, 53, 10, 22], [1, 5, 2, 58, 10, 12], [1, 5, 2, 59, 10, 15], [1, 5, 0, 36, 10, 9], [1, 5, 2, 77, 10, 59], [1, 5, 0, 15, 10, 6], [1, 5, 0, 61, 10, 5], [1, 5, 0, 60, 10, 10], [1, 5, 0, 23, 10, 10], [1, 5, 0, 52, 10, 59], [1, 5, 0, 52, 10, 76], [1, 5, 0, 26, 10, 2], [1, 5, 5, 81, 10, 3]];
+/* STATE */
+let fCanal=null, fStore=null, fCat=null, fMonths=null;
+let selProd=null, apSort='qty', promSort='prom';
+let cTrend=null, cCat=null;
+const fmt=n=>Math.round(n).toLocaleString('es');
 
-const CANALS = ['TIENDAS','TALLER'];
-const CAT_COLORS  = ['#7B8DB8','#29CCB4','#4A8FFF','#F5A623','#9B7AFA','#33D48A'];
-const STORE_COLORS= ['#4A8FFF','#29CCB4','#9B7AFA','#F5A623','#F76C8A','#888','#33D48A'];
-const CAT_BADGE   = ['b-gy','b-te','b-bl','b-am','b-pu','b-gr'];
+/* FILTER HELPERS */
+const passCanal=r=>fCanal===null||fCanal.has(r[0]);
+const passStore=r=>fStore===null||fStore.has(r[1]);
+const passCat  =r=>fCat===null||fCat.has(r[2]);
+const passMonth=r=>fMonths===null||fMonths.has(r[4]);
+const passProd =r=>selProd===null||r[3]===selProd;
 
-let sCanals = new Set([0,1]);
-let sStores = new Set(STORES.map((_,i)=>i));
-let sCats   = new Set(CATS.map((_,i)=>i));
-let sQ = '';
-let sortCol='qty', sortDir=-1;
-let cTrend=null, cCat=null, cProd=null;
+/* filBase: canal + store + month (no cat filter, so product list shows all)
+   filFull: all filters including cat
+   filProd: all filters + selected product */
+const filBase=()=>RECS.filter(r=>passCanal(r)&&passStore(r)&&passMonth(r));
+const filFull=()=>RECS.filter(r=>passCanal(r)&&passStore(r)&&passCat(r)&&passMonth(r));
+const filProd=()=>RECS.filter(r=>passCanal(r)&&passStore(r)&&passCat(r)&&passMonth(r)&&passProd(r));
 
-const fmt = n => Math.round(n).toLocaleString('es');
-
-function fil(){
-  return RECS.filter(r=>sCanals.has(r[0])&&sStores.has(r[1])&&sCats.has(r[2])&&
-    (sQ===''||PRODS[r[3]].toLowerCase().includes(sQ)));
+/* ── TODOS-STYLE GROUP ── */
+function buildTodosGroup(id, labels, getF, setF, altClass){
+  const wrap=document.getElementById(id);
+  wrap.innerHTML='';
+  const state=getF();
+  // Todos button
+  const tb=document.createElement('button');
+  tb.className='fg-todos'+(state===null?'':' off');
+  tb.textContent='Todos';
+  tb.onclick=()=>{setF(null);buildTodosGroup(id,labels,getF,setF,altClass);render();};
+  wrap.appendChild(tb);
+  labels.forEach((lbl,i)=>{
+    const on=state!==null&&state.has(i);
+    const b=document.createElement('button');
+    b.className='fg-item'+(on?' on'+(altClass&&i===1?' '+altClass:''):'');
+    b.textContent=lbl;
+    b.onclick=()=>{
+      let cur=getF();
+      if(cur===null){cur=new Set([i]);}
+      else if(cur.has(i)){cur.delete(i);if(cur.size===0)cur=null;}
+      else{cur.add(i);if(cur.size===labels.length)cur=null;}
+      setF(cur);buildTodosGroup(id,labels,getF,setF,altClass);render();
+    };
+    wrap.appendChild(b);
+  });
 }
 
-function pill(text, on, cls, onclick){
-  const b=document.createElement('button');
-  b.className='pill'+(on?' on':'');
-  if(cls && on) b.classList.add(cls);
-  b.textContent=text;
-  b.onclick=onclick;
-  return b;
+/* ── MONTH FILTER ── */
+function buildMonthFilter(){
+  const fm=document.getElementById('fp-months');
+  fm.innerHTML='';
+  const isTodos=fMonths===null;
+  document.getElementById('btn-mtodos').className='mtodos'+(isTodos?'':' off');
+  MONTHS.forEach((m,i)=>{
+    const on=fMonths!==null&&fMonths.has(i);
+    const p=document.createElement('button');
+    p.className='mpill'+(on?' on':'');
+    p.textContent=MONTH_SHORT[m]||m;
+    p.onclick=()=>{
+      if(fMonths===null){fMonths=new Set([i]);}
+      else if(fMonths.has(i)){fMonths.delete(i);if(fMonths.size===0)fMonths=null;}
+      else{fMonths.add(i);if(fMonths.size===MONTHS.length)fMonths=null;}
+      buildMonthFilter();updatePeriodLabel();render();
+    };
+    fm.appendChild(p);
+  });
+}
+function toggleAllMonths(){fMonths=null;buildMonthFilter();updatePeriodLabel();render();}
+function updatePeriodLabel(){
+  if(fMonths===null){document.getElementById('period-label').textContent='Ene 2025 – May 2026';return;}
+  const a=[...fMonths].sort((a,b)=>a-b).map(i=>MONTHS[i]);
+  if(!a.length){document.getElementById('period-label').textContent='Sin período';return;}
+  const s=MONTH_SHORT[a[0]]||a[0], e=MONTH_SHORT[a[a.length-1]]||a[a.length-1];
+  document.getElementById('period-label').textContent=a.length===1?s:`${s} → ${e} (${a.length} meses)`;
 }
 
 function buildFilters(){
-  const fc=document.getElementById('fp-canal');
-  CANALS.forEach((c,i)=>{
-    const p=pill(c, sCanals.has(i), i===1?'pu':null, ()=>{
-      sCanals.has(i)?sCanals.delete(i):sCanals.add(i);
-      p.className='pill'+(sCanals.has(i)?' on':'');
-      render();
-    });
-    fc.appendChild(p);
+  buildTodosGroup('fp-canal',CANALS,()=>fCanal,v=>{fCanal=v;},'pu');
+  buildTodosGroup('fp-store',STORE_LABELS,()=>fStore,v=>{fStore=v;});
+  buildTodosGroup('fp-cat',CATS.map(CAT_SHORT),()=>fCat,v=>{fCat=v;});
+  buildMonthFilter();
+}
+
+/* ── PRODUCT DROPDOWN ── */
+let dropOpen=false;
+function toggleDrop(e){
+  e.stopPropagation();
+  dropOpen=!dropOpen;
+  document.getElementById('prod-dropdown').className=dropOpen?'open':'';
+  document.getElementById('prod-btn').className=dropOpen?'active':'';
+  if(dropOpen){
+    const inp=document.getElementById('pd-q');
+    inp.value='';
+    renderDropList();
+    setTimeout(()=>inp.focus(),30);
+  }
+}
+document.addEventListener('click',e=>{
+  if(!document.getElementById('prod-btn-wrap').contains(e.target)){
+    dropOpen=false;
+    document.getElementById('prod-dropdown').className='';
+    document.getElementById('prod-btn').className='';
+  }
+});
+
+function renderDropList(){
+  const q=(document.getElementById('pd-q').value||'').toLowerCase();
+  const list=document.getElementById('pd-list');
+  list.innerHTML='';
+  // Group by category, RESPECT fCat
+  const byCat={};
+  PRODS.forEach((p,i)=>{
+    const ci=PROD_CAT[i];
+    if(fCat!==null&&!fCat.has(ci))return;
+    if(q&&!p.toLowerCase().includes(q))return;
+    if(!byCat[ci])byCat[ci]=[];
+    byCat[ci].push({p,i});
   });
-
-  const fs=document.getElementById('fp-store');
-  STORES.forEach((s,i)=>{
-    const label=s.replace('CERRO VERDE','C.Verde').replace('SAMBIL CHAC','Samb.Ch').replace('SAMBIL VAL','Samb.Val').replace('PLAZA','G.Plaza');
-    const p=pill(label, sStores.has(i), null, ()=>{
-      sStores.has(i)?sStores.delete(i):sStores.add(i);
-      p.className='pill'+(sStores.has(i)?' on':'');
-      render();
+  const keys=Object.keys(byCat).map(Number).sort((a,b)=>a-b);
+  if(!keys.length){list.innerHTML='<div style="padding:12px;text-align:center;font-size:11px;color:var(--t3)">Sin resultados</div>';return;}
+  keys.forEach(ci=>{
+    const h=document.createElement('div');
+    h.className='pd-cat-hdr';h.textContent=CAT_SHORT(CATS[ci]);h.style.color=CAT_COLORS[ci];
+    list.appendChild(h);
+    byCat[ci].forEach(({p,i})=>{
+      const el=document.createElement('div');
+      el.className='pd-item'+(selProd===i?' sel':'');
+      el.innerHTML=`<span class="pd-dot" style="background:${CAT_COLORS[ci]}"></span>${p}`;
+      el.onclick=()=>{selProd=(selProd===i?null:i);updateProdBtn();renderDropList();render();};
+      list.appendChild(el);
     });
-    fs.appendChild(p);
-  });
-
-  const fp=document.getElementById('fp-cat');
-  CATS.forEach((c,i)=>{
-    const label=c.replace('Artículos de ','').replace('Artículos ','').replace('Consumibles de Venta','Consumibles').replace('Útiles de Oficina','Oficina');
-    const p=pill(label, sCats.has(i), null, ()=>{
-      sCats.has(i)?sCats.delete(i):sCats.add(i);
-      p.className='pill'+(sCats.has(i)?' on':'');
-      render();
-    });
-    fp.appendChild(p);
-  });
-
-  document.getElementById('search-box').oninput=e=>{sQ=e.target.value.toLowerCase();render();};
-  document.getElementById('reset-btn').onclick=()=>{
-    sCanals=new Set([0,1]);sStores=new Set(STORES.map((_,i)=>i));
-    sCats=new Set(CATS.map((_,i)=>i));sQ='';
-    document.getElementById('search-box').value='';
-    document.querySelectorAll('.pill').forEach(p=>{p.className='pill on';});
-    render();
-  };
-
-  document.querySelectorAll('thead th[data-c]').forEach(th=>{
-    th.onclick=()=>{
-      if(sortCol===th.dataset.c) sortDir*=-1; else {sortCol=th.dataset.c;sortDir=-1;}
-      document.querySelectorAll('thead th').forEach(t=>t.classList.remove('s'));
-      th.classList.add('s');
-      renderTable(fil());
-    };
   });
 }
 
-function renderKPIs(recs){
+function clearProd(){
+  selProd=null;updateProdBtn();renderDropList();
+  dropOpen=false;
+  document.getElementById('prod-dropdown').className='';
+  document.getElementById('prod-btn').className='';
+  render();
+}
+
+function updateProdBtn(){
+  document.getElementById('prod-dot').className='prod-btn-dot'+(selProd!==null?' sel':'');
+  document.getElementById('prod-btn-label').textContent=selProd!==null?(PRODS[selProd].length>22?PRODS[selProd].slice(0,22)+'…':PRODS[selProd]):'Artículos';
+}
+
+/* ── TOPBAR KPIs ── */
+function renderTopbarKPIs(recs){
   const tot=recs.reduce((s,r)=>s+r[5],0);
-  const tnd=recs.filter(r=>r[0]===0).reduce((s,r)=>s+r[5],0);
-  const tal=recs.filter(r=>r[0]===1).reduce((s,r)=>s+r[5],0);
   const np=new Set(recs.map(r=>r[3])).size;
-  const ns=new Set(recs.filter(r=>r[0]===0).map(r=>r[1])).size;
-
-  document.getElementById('badge-recs').textContent=fmt(recs.length)+' registros';
-  document.getElementById('badge-total').textContent=fmt(tot)+' unidades';
-
-  const items=[
-    {l:'Total Unidades',v:fmt(tot),s:'Ambos canales',ac:'var(--blue)'},
-    {l:'Tiendas',v:fmt(tnd),s:Math.round(tnd/(tot||1)*100)+'% del total',ac:'var(--blue)'},
-    {l:'Taller Interno',v:fmt(tal),s:Math.round(tal/(tot||1)*100)+'% del total',ac:'var(--purple)'},
-    {l:'Artículos',v:np,s:'tipos distintos',ac:'var(--teal)'},
-    {l:'Tiendas Activas',v:ns,s:'ubicaciones',ac:'var(--amber)'},
-  ];
-  document.getElementById('kpi-row').innerHTML=items.map(d=>`
-    <div class="kpi" style="--ac:${d.ac}">
-      <div class="kpi-lbl">${d.l}</div>
-      <div class="kpi-val">${d.v}</div>
-      <div class="kpi-sub">${d.s}</div>
-    </div>`).join('');
+  const mon=fMonths===null?MONTHS.length:[...fMonths].length;
+  document.getElementById('topbar-kpis').innerHTML=[
+    {l:'Unidades',v:fmt(tot),s:'despachadas'},
+    {l:'Artículos',v:np,s:'distintos'},
+    {l:'Meses',v:mon,s:'seleccionados'},
+  ].map(d=>`<div class="tk"><div class="tk-lbl">${d.l}</div><div class="tk-val">${d.v}</div><div class="tk-sub">${d.s}</div></div>`).join('');
 }
 
-function renderTrend(recs){
-  const byM={};
-  MONTHS.forEach(m=>{byM[m]={0:0,1:0};});
-  recs.forEach(r=>{if(byM[MONTHS[r[4]]])byM[MONTHS[r[4]]][r[0]]+=r[5];});
+/* ── PRODUCT BANNER ── */
+function renderProdBanner(){
+  const wrap=document.getElementById('prod-banner-wrap');
+  if(selProd===null){wrap.innerHTML='';return;}
+  const recs=filProd();
   const tot=recs.reduce((s,r)=>s+r[5],0);
-  document.getElementById('ti-trend').textContent='Total: '+fmt(tot)+' un.';
-  document.getElementById('leg-trend').innerHTML=
-    '<div class="li"><span class="ld" style="background:#4A8FFF"></span>Tiendas</div>'+
-    '<div class="li"><span class="ld" style="background:#9B7AFA"></span>Taller Interno</div>';
+  const ms=new Set(recs.map(r=>r[4])).size;
+  const prom=ms?Math.round(tot/ms):0;
+  const cc=CAT_COLORS[PROD_CAT[selProd]];
+  wrap.innerHTML=`<div class="pd-banner">
+    <div class="pdb-info">
+      <div class="pdb-name">${PRODS[selProd]}</div>
+      <div class="pdb-cat" style="color:${cc}">● ${CATS[PROD_CAT[selProd]]}</div>
+    </div>
+    <div class="pdb-kpis">
+      <div class="pdb-kpi"><div class="pdb-kpi-l">Total</div><div class="pdb-kpi-v" style="color:${cc}">${fmt(tot)}</div><div class="pdb-kpi-s">unidades</div></div>
+      <div class="pdb-kpi"><div class="pdb-kpi-l">Meses activos</div><div class="pdb-kpi-v">${ms}</div><div class="pdb-kpi-s">con movimiento</div></div>
+      <div class="pdb-kpi"><div class="pdb-kpi-l">Prom/Mes</div><div class="pdb-kpi-v">${fmt(prom)}</div><div class="pdb-kpi-s">unidades</div></div>
+    </div>
+    <button class="pdb-close" onclick="clearProd()">✕ Quitar</button>
+  </div>`;
+}
 
+/* ── TREND ── */
+function renderTrend(recs){
+  const byM={};MONTHS.forEach(m=>byM[m]={0:0,1:0});
+  recs.forEach(r=>{if(byM[MONTHS[r[4]]])byM[MONTHS[r[4]]][r[0]]+=r[5];});
+  document.getElementById('trend-total').textContent=fmt(recs.reduce((s,r)=>s+r[5],0))+' un.';
+  const actMons=fMonths===null?MONTHS:[...fMonths].sort((a,b)=>a-b).map(i=>MONTHS[i]);
   const ctx=document.getElementById('ch-trend').getContext('2d');
   if(cTrend)cTrend.destroy();
-  cTrend=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:MONTHS,
+  cTrend=new Chart(ctx,{type:'bar',
+    data:{labels:actMons.map(m=>MONTH_SHORT[m]||m),
       datasets:[
-        {label:'Tiendas',data:MONTHS.map(m=>byM[m][0]),backgroundColor:'#4A8FFF',borderRadius:3,stack:'s'},
-        {label:'Taller',data:MONTHS.map(m=>byM[m][1]),backgroundColor:'#9B7AFA',borderRadius:3,stack:'s'},
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#151E32',borderColor:'#232D48',borderWidth:1,titleColor:'#E4EDFF',bodyColor:'#7B8DB8',
-        callbacks:{label:c=>' '+fmt(c.raw)+' un.'}
-      }},
+        {label:'Tiendas',data:actMons.map(m=>byM[m][0]),backgroundColor:'#3D8BFF',borderRadius:3,stack:'s'},
+        {label:'Taller', data:actMons.map(m=>byM[m][1]),backgroundColor:'#8B6BF0',borderRadius:3,stack:'s'},
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#121829',borderColor:'#1E2A42',borderWidth:1,titleColor:'#DCE8FF',bodyColor:'#6B82B0',callbacks:{label:c=>' '+fmt(c.raw)+' un.'}}},
       scales:{
-        x:{ticks:{color:'#3E4D72',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(35,45,72,.5)'},border:{color:'#232D48'}},
-        y:{ticks:{color:'#3E4D72',font:{size:9},callback:v=>v>=1000?Math.round(v/1000)+'k':v},grid:{color:'rgba(35,45,72,.5)'},border:{color:'#232D48'}}
-      }
-    }
+        x:{ticks:{color:'#2E3D60',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(30,42,66,.5)'},border:{color:'#1E2A42'}},
+        y:{ticks:{color:'#2E3D60',font:{size:9},callback:v=>v>=1000?Math.round(v/1000)+'k':v},grid:{color:'rgba(30,42,66,.5)'},border:{color:'#1E2A42'}}
+      }}
   });
 }
 
+/* ── CATEGORY DONUT ── */
 function renderCat(recs){
   const byC={};CATS.forEach((_,i)=>byC[i]=0);
   recs.forEach(r=>byC[r[2]]=(byC[r[2]]||0)+r[5]);
   const tot=Object.values(byC).reduce((a,b)=>a+b,0);
-  const vals=CATS.map((_,i)=>byC[i]);
-  document.getElementById('ti-cat').textContent=fmt(tot)+' un.';
-
-  document.getElementById('leg-cat').innerHTML=CATS.map((c,i)=>`
-    <div class="li"><span class="ld" style="background:${CAT_COLORS[i]}"></span>
-    <span>${c.replace('Artículos de ','').replace('Artículos ','').replace('Consumibles de Venta','Consumibles').replace('Útiles de Oficina','Oficina')}: ${Math.round(vals[i]/(tot||1)*100)}%</span></div>`).join('');
-
+  document.getElementById('cat-tot').textContent=fmt(tot)+' un.';
+  document.getElementById('leg-cat').innerHTML=CATS.map((c,i)=>`<div class="li"><span class="ld" style="background:${CAT_COLORS[i]}"></span><span>${CAT_SHORT(c)}: ${Math.round(byC[i]/(tot||1)*100)}%</span></div>`).join('');
   const ctx=document.getElementById('ch-cat').getContext('2d');
   if(cCat)cCat.destroy();
-  cCat=new Chart(ctx,{
-    type:'doughnut',
-    data:{labels:CATS,datasets:[{data:vals,backgroundColor:CAT_COLORS,borderColor:'#0F1525',borderWidth:2,hoverOffset:5}]},
-    options:{
-      responsive:true,maintainAspectRatio:false,cutout:'62%',
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#151E32',borderColor:'#232D48',borderWidth:1,titleColor:'#E4EDFF',bodyColor:'#7B8DB8',
-        callbacks:{label:c=>' '+fmt(c.raw)+' ('+Math.round(c.raw/(tot||1)*100)+'%)'}
-      }}
-    }
+  cCat=new Chart(ctx,{type:'doughnut',
+    data:{labels:CATS,datasets:[{data:CATS.map((_,i)=>byC[i]),backgroundColor:CAT_COLORS,borderColor:'#0D1120',borderWidth:2,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#121829',borderColor:'#1E2A42',borderWidth:1,titleColor:'#DCE8FF',bodyColor:'#6B82B0',callbacks:{label:c=>' '+fmt(c.raw)+' ('+Math.round(c.raw/(tot||1)*100)+'%)'}}}}
   });
 }
 
-function renderStores(recs){
-  const bySt={};STORES.forEach((_,i)=>bySt[i]=0);
-  recs.forEach(r=>bySt[r[1]]=(bySt[r[1]]||0)+r[5]);
+/* ── STORE BARS ── */
+function renderStoreBars(recs){
+  const bySt={};const byMs={};
+  STORES.forEach((_,i)=>{bySt[i]=0;byMs[i]=new Set();});
+  recs.forEach(r=>{bySt[r[1]]=(bySt[r[1]]||0)+r[5];byMs[r[1]].add(r[4]);});
   const max=Math.max(...Object.values(bySt),1);
-  const w=document.getElementById('store-wrap');
-  w.innerHTML=STORES.map((s,i)=>{
-    const v=bySt[i]||0;
-    const pct=Math.round(v/max*100);
-    const lbl=s.replace('CERRO VERDE','Cerro Verde').replace('SAMBIL CHAC','Sambil Chacaíto').replace('SAMBIL VAL','Sambil Val').replace('PLAZA','Grand Plaza');
-    return `<div class="sbar-row">
-      <div class="sbar-label"><span class="sbar-name">${lbl}</span><span class="sbar-val">${fmt(v)}</span></div>
+  document.getElementById('store-bars').innerHTML=STORES.map((s,i)=>{
+    const v=bySt[i]||0;const ms=byMs[i].size||1;const pct=Math.round(v/max*100);
+    return`<div class="sbar-row">
+      <div class="sbar-lbl"><span class="sbar-name">${STORE_LABELS[i]}</span><span class="sbar-val">${fmt(v)}</span></div>
       <div class="sbar-track"><div class="sbar-fill" style="width:${pct}%;background:${STORE_COLORS[i]}"></div></div>
+      <div class="sbar-prom">Prom/mes: ${fmt(v/ms)} un.</div>
     </div>`;
   }).join('');
 }
 
-function renderTopProd(recs){
-  const byP={};
-  recs.forEach(r=>byP[r[3]]=(byP[r[3]]||0)+r[5]);
-  const sorted=Object.entries(byP).sort((a,b)=>b[1]-a[1]).slice(0,14);
-  const labels=sorted.map(([i])=>PRODS[i]);
-  const vals=sorted.map(([,v])=>v);
-  const catMap={};RECS.forEach(r=>catMap[r[3]]=r[2]);
-  const colors=sorted.map(([i])=>CAT_COLORS[catMap[i]||0]);
-
-  document.getElementById('ti-prod').textContent='Top '+sorted.length;
-
-  const ctx=document.getElementById('ch-prod').getContext('2d');
-  if(cProd)cProd.destroy();
-  cProd=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets:[{data:vals,backgroundColor:colors,borderRadius:3}]},
-    options:{
-      indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#151E32',borderColor:'#232D48',borderWidth:1,titleColor:'#E4EDFF',bodyColor:'#7B8DB8',
-        callbacks:{label:c=>' '+fmt(c.raw)+' unidades'}
-      }},
-      scales:{
-        x:{ticks:{color:'#3E4D72',font:{size:9},callback:v=>v>=1000?Math.round(v/1000)+'k':v},grid:{color:'rgba(35,45,72,.5)'},border:{color:'#232D48'}},
-        y:{ticks:{color:'#9BB4E8',font:{size:10}},grid:{display:false},border:{color:'#232D48'}}
-      }
-    }
-  });
+/* ── ALL PRODUCTS LIST ── */
+function sortAP(by){
+  apSort=by;
+  ['qty','prom','name'].forEach(k=>{const b=document.getElementById('sb-'+k);if(b)b.className='sort-btn'+(k===by?' on':'');});
+  renderAllProd();
 }
 
-function renderTable(recs){
-  const agg={};
+function renderAllProd(){
+  /* If article selected → show only that one
+     If no article selected → show all that pass canal+store+cat+month filters */
+  let recs;
+  if(selProd!==null){
+    recs=filProd();
+  } else {
+    recs=filFull();
+  }
+
+  const byP={};const byPms={};
   recs.forEach(r=>{
-    const k=`${r[0]}|${r[1]}|${r[2]}|${r[3]}`;
-    if(!agg[k])agg[k]={can:r[0],st:r[1],cat:r[2],prod:r[3],qty:0,ms:new Set()};
-    agg[k].qty+=r[5];agg[k].ms.add(r[4]);
+    byP[r[3]]=(byP[r[3]]||0)+r[5];
+    if(!byPms[r[3]])byPms[r[3]]=new Set();
+    byPms[r[3]].add(r[4]);
   });
-  let rows=Object.values(agg);
-  const colMap={prod:r=>PRODS[r.prod],cat:r=>CATS[r.cat],store:r=>STORES[r.st],canal:r=>CANALS[r.can],qty:r=>r.qty,meses:r=>r.ms.size,prom:r=>r.qty/r.ms.size};
-  rows.sort((a,b)=>{const va=colMap[sortCol](a),vb=colMap[sortCol](b);return(typeof va==='string'?va.localeCompare(vb):va-vb)*sortDir;});
 
-  document.getElementById('tbl-count').textContent=rows.length+' artículos';
-  document.getElementById('tbl-body').innerHTML=rows.map(r=>`
-    <tr>
-      <td style="font-weight:600">${PRODS[r.prod]}</td>
-      <td><span class="b ${CAT_BADGE[r.cat]}">${CATS[r.cat].replace('Artículos de ','').replace('Artículos ','').replace('Consumibles de Venta','Consumibles').replace('Útiles de Oficina','Oficina')}</span></td>
-      <td style="color:var(--t2)">${STORES[r.st]}</td>
-      <td><span class="b ${r.can===0?'b-bl':'b-pu'}">${CANALS[r.can]}</span></td>
-      <td style="text-align:right;font-weight:700;color:var(--t1)">${fmt(r.qty)}</td>
-      <td style="text-align:right;color:var(--t2)">${r.ms.size}</td>
-      <td style="text-align:right;color:var(--t3)">${Math.round(r.qty/r.ms.size).toLocaleString('es')}</td>
-    </tr>`).join('');
+  let entries=Object.entries(byP);
+  const promMap={};entries.forEach(([i,q])=>{promMap[i]=Math.round(q/(byPms[i]?.size||1));});
+  if(apSort==='qty')entries.sort((a,b)=>b[1]-a[1]);
+  else if(apSort==='prom')entries.sort((a,b)=>promMap[b[0]]-promMap[a[0]]);
+  else entries.sort((a,b)=>PRODS[a[0]].localeCompare(PRODS[b[0]]));
+
+  const maxV=apSort==='prom'
+    ?Math.max(...entries.map(([i])=>promMap[i]),1)
+    :(entries.length?Math.max(...entries.map(([,v])=>v),1):1);
+
+  document.getElementById('prod-count').textContent=selProd!==null?'1 seleccionado':entries.length+' artículos';
+
+  document.getElementById('all-prod-list').innerHTML=entries.map(([pi,qty])=>{
+    const ci=PROD_CAT[pi];
+    const prom=promMap[pi];
+    const barV=apSort==='prom'?prom:qty;
+    const pct=Math.round(barV/(maxV||1)*100);
+    const isSel=selProd===+pi;
+    return`<div class="ap-row${isSel?' sel':''}" onclick="selectProd(${pi})">
+      <div style="display:flex;align-items:center;gap:5px;flex:1.8;min-width:0">
+        <span style="width:6px;height:6px;border-radius:50%;background:${CAT_COLORS[ci]};flex-shrink:0"></span>
+        <span class="ap-name" title="${PRODS[pi]}">${PRODS[pi]}</span>
+      </div>
+      <span class="ap-cat">${CAT_SHORT(CATS[ci])}</span>
+      <div class="ap-bar-wrap"><div class="ap-bar" style="width:${pct}%;background:${CAT_COLORS[ci]}"></div></div>
+      <div class="ap-val">${fmt(qty)}</div>
+      <div class="ap-prom">${fmt(prom)}/mes</div>
+    </div>`;
+  }).join('');
 }
 
+function selectProd(pi){
+  selProd=(selProd===+pi?null:+pi);
+  updateProdBtn();renderDropList();render();
+}
+
+/* ── PROMEDIOS VIEW ── */
+function renderPromedios(){
+  // Respects ALL filters including fCat and selProd
+  const recs=filProd();
+  const byP={};const byPms={};
+  recs.forEach(r=>{
+    byP[r[3]]=(byP[r[3]]||0)+r[5];
+    if(!byPms[r[3]])byPms[r[3]]=new Set();
+    byPms[r[3]].add(r[4]);
+  });
+  let entries=Object.entries(byP);
+  const promMap={};entries.forEach(([i,q])=>{promMap[i]=q/(byPms[i]?.size||1);});
+  if(promSort==='prom')entries.sort((a,b)=>promMap[b[0]]-promMap[a[0]]);
+  else if(promSort==='total')entries.sort((a,b)=>b[1]-a[1]);
+  else entries.sort((a,b)=>PRODS[a[0]].localeCompare(PRODS[b[0]]));
+  const maxP=Math.max(...entries.map(([i])=>promMap[i]),1);
+
+  const mon=fMonths===null?MONTHS.length:[...fMonths].length;
+  document.getElementById('prom-info').textContent=
+    (selProd!==null?'1 artículo':entries.length+' artículos')+' · '+mon+' meses';
+
+  function heatColor(v,mx){const t=v/mx;return t>.75?'#F05878':t>.5?'#F09820':t>.25?'#3D8BFF':'#1DC9B0';}
+
+  document.getElementById('prom-body').innerHTML=entries.map(([pi,qty])=>{
+    const ci=PROD_CAT[pi];
+    const ms=byPms[pi]?.size||1;
+    const prom=promMap[pi];
+    const pct=Math.round(prom/maxP*100);
+    const hc=heatColor(prom,maxP);
+    return`<tr>
+      <td style="font-weight:600;color:var(--t1)">${PRODS[pi]}</td>
+      <td><span class="badge-cat" style="background:${CAT_BADGE_BG[ci]};color:${CAT_BADGE_FG[ci]}">${CAT_SHORT(CATS[ci])}</span></td>
+      <td class="num" style="font-weight:700;color:var(--t1)">${fmt(qty)}</td>
+      <td class="num" style="color:var(--t2)">${ms}</td>
+      <td class="num" style="font-weight:800;font-size:14px;color:${hc}">${fmt(prom)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:6px;background:var(--bg3);border-radius:3px">
+            <div style="width:${pct}%;height:6px;border-radius:3px;background:${hc}"></div>
+          </div>
+          <span style="font-size:10px;color:var(--t3);min-width:28px">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sortProm(by){
+  promSort=by;
+  ['prom','total','name'].forEach(k=>{
+    const b=document.getElementById('ps-'+k);
+    if(b)b.className='sort-btn sort-btn-amber'+(k===by?' on':'');
+  });
+  renderPromedios();
+}
+
+/* ── VIEW SWITCH ── */
+function switchView(id,el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v-'+id).classList.add('active');
+  if(id==='promedios')renderPromedios();
+}
+
+/* ── MAIN RENDER ── */
 function render(){
-  const recs=fil();
-  renderKPIs(recs);
-  renderTrend(recs);
-  renderCat(recs);
-  renderStores(recs);
-  renderTopProd(recs);
-  renderTable(recs);
+  const chartRecs=filProd();    // for charts: respects all filters + prod selection
+  const baseRecs=filFull();     // for KPIs count: all filters but no prod restriction
+  renderTopbarKPIs(baseRecs);
+  renderProdBanner();
+  renderTrend(chartRecs);
+  renderCat(chartRecs);
+  renderStoreBars(chartRecs);
+  renderAllProd();
+  const av=document.querySelector('.nav-tab.active');
+  if(av&&av.textContent.includes('Prom'))renderPromedios();
 }
 
 buildFilters();
 render();
-
-document.addEventListener("DOMContentLoaded",()=>{
-  const pf=document.getElementById("product-filter");
-  if(pf && typeof PRODS!=="undefined"){
-    PRODS.forEach(p=>{
-      const op=document.createElement("option");
-      op.value=p;
-      op.textContent=p;
-      pf.appendChild(op);
-    });
-  }
-});
-
 </script>
 </body>
 </html>
